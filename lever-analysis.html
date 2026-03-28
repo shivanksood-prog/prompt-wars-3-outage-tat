@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lever Analysis — Outage Resolution TAT</title>
+<style>
+:root{--bg:#FAF9FC;--card:#FFFFFF;--border:#D7D3E0;--text:#161021;--muted:#665E75;--accent:#D9008D;--accent-light:#D9008D;--green:#008043;--green-bg:#E1FAED;--red:#E01E00;--red-bg:#FFE9E5;--amber:#FF8000;--amber-bg:#FFE6CC;--purple:#6D17CE;--purple-bg:#F1E5FF;--divider:#A7A1B2;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;}
+
+.hero{padding:60px 24px 44px;text-align:center;background:linear-gradient(135deg,#F1EDF7 0%,#FFE5F6 50%,#F1EDF7 100%);border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 60% 40%,rgba(217,0,141,0.06) 0%,transparent 50%);pointer-events:none;}
+.hero-badge{display:inline-block;padding:6px 16px;border-radius:100px;background:rgba(217,0,141,0.12);color:var(--accent);font-size:13px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:18px;}
+.hero h1{font-size:clamp(26px,4vw,42px);font-weight:800;line-height:1.15;margin-bottom:14px;color:var(--text);}
+.hero p{font-size:16px;color:var(--muted);max-width:740px;margin:0 auto;line-height:1.7;}
+
+.container{max-width:1100px;margin:0 auto;padding:0 24px;}
+section{padding:52px 0;border-bottom:1px solid var(--border);}
+section:last-of-type{border-bottom:none;}
+.sl{font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+.st{font-size:clamp(22px,3vw,30px);font-weight:700;margin-bottom:6px;}
+.ss{font-size:14px;color:var(--muted);margin-bottom:28px;max-width:700px;}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:26px;margin-bottom:18px;box-shadow:0 1px 3px rgba(22,16,33,.06);}
+.card h3{font-size:16px;font-weight:700;margin-bottom:8px;}
+.card p,.card li{font-size:13px;color:var(--muted);line-height:1.7;}
+.card ul{list-style:none;padding:0;}
+.card ul li{padding-left:18px;position:relative;margin-bottom:5px;}
+.card ul li::before{content:'';position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;background:var(--accent);}
+
+.tw{overflow-x:auto;margin:16px 0;border-radius:10px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:12.5px;}
+thead th{background:#F1EDF7;color:var(--text);font-weight:700;padding:10px 12px;text-align:left;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:.4px;}
+tbody td{padding:9px 12px;border-top:1px solid #F1EDF7;color:var(--muted);white-space:nowrap;}
+tbody tr:nth-child(even){background:#F9F7FC;}
+tbody tr:hover{background:rgba(217,0,141,.04);}
+td.hi{color:var(--accent);font-weight:700;}
+td.g{color:var(--green);font-weight:600;}
+td.r{color:var(--red);font-weight:700;}
+td.a{color:var(--amber);font-weight:600;}
+
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:18px 0;}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:16px;text-align:center;box-shadow:0 1px 3px rgba(22,16,33,.06);}
+.sv{font-size:24px;font-weight:800;line-height:1.2;}
+.sb{font-size:10px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+
+.kf{display:flex;align-items:flex-start;gap:10px;padding:14px 18px;border-radius:0 8px 8px 0;margin:14px 0;font-size:13px;line-height:1.6;}
+.kf.pink{background:#FFE5F6;border-left:3px solid var(--accent);color:var(--text);}
+.kf.pink strong{color:var(--accent);}
+.kf.red{background:var(--red-bg);border-left:3px solid var(--red);color:var(--text);}
+.kf.red strong{color:var(--red);}
+.kf.green{background:var(--green-bg);border-left:3px solid var(--green);color:var(--text);}
+.kf.green strong{color:var(--green);}
+.kf.amber{background:var(--amber-bg);border-left:3px solid var(--amber);color:var(--text);}
+.kf.amber strong{color:var(--amber);}
+
+.badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;vertical-align:middle;}
+.badge-red{background:var(--red-bg);color:var(--red);}
+.badge-green{background:var(--green-bg);color:var(--green);}
+.badge-amber{background:var(--amber-bg);color:var(--amber);}
+.badge-purple{background:var(--purple-bg);color:var(--purple);}
+
+.eq{background:#F1EDF7;border:1px solid var(--border);border-radius:14px;padding:28px;margin:36px 0;text-align:center;}
+.eq pre{font-family:'JetBrains Mono','Fira Code',monospace;font-size:13px;color:var(--muted);line-height:1.8;display:inline-block;text-align:left;}
+.eq pre strong{color:var(--accent);}
+.eq pre .ok{color:var(--green);}
+.eq pre .na{color:var(--divider);}
+
+/* Lever section cards */
+.lc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:30px;margin-bottom:24px;position:relative;overflow:hidden;box-shadow:0 1px 4px rgba(22,16,33,.06);}
+.lc::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;}
+.lc.l1::before{background:var(--red);}
+.lc.l2::before{background:var(--amber);}
+.lc.l3::before{background:var(--accent);}
+.lc.l4::before{background:var(--purple);}
+.lc.l5::before{background:var(--green);}
+.ln{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+.lc.l1 .ln{color:var(--red);}
+.lc.l2 .ln{color:var(--amber);}
+.lc.l3 .ln{color:var(--accent);}
+.lc.l4 .ln{color:var(--purple);}
+.lc.l5 .ln{color:var(--green);}
+.lc h3{font-size:19px;margin-bottom:4px;}
+.lc .lt{font-size:13px;color:var(--muted);margin-bottom:18px;}
+.sub{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-top:20px;margin-bottom:8px;}
+
+/* Heatmap */
+.hm{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;margin:14px 0;}
+.hmc{border-radius:5px;padding:7px 3px;text-align:center;}
+.hmc .hl{font-size:9px;color:var(--muted);margin-bottom:1px;}
+.hmc .hv{font-size:12px;font-weight:800;}
+
+/* Project cards */
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin:24px 0;}
+.proj{border-radius:14px;padding:24px;position:relative;overflow:hidden;}
+.proj::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;}
+.proj.p1{background:var(--red-bg);border:1px solid rgba(224,30,0,.2);}
+.proj.p1::before{background:var(--red);}
+.proj.p2{background:var(--amber-bg);border:1px solid rgba(255,128,0,.2);}
+.proj.p2::before{background:var(--amber);}
+.proj.p3{background:#FFE5F6;border:1px solid rgba(217,0,141,.2);}
+.proj.p3::before{background:var(--accent);}
+.proj.p4{background:var(--purple-bg);border:1px solid rgba(109,23,206,.2);}
+.proj.p4::before{background:var(--purple);}
+.proj h4{font-size:15px;font-weight:700;margin-bottom:6px;}
+.proj .ptag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.proj.p1 .ptag{color:var(--red);}
+.proj.p2 .ptag{color:var(--amber);}
+.proj.p3 .ptag{color:var(--accent);}
+.proj.p4 .ptag{color:var(--purple);}
+.proj p,.proj li{font-size:12.5px;color:var(--muted);line-height:1.6;}
+.proj ul{list-style:none;padding:0;margin-top:10px;}
+.proj ul li{padding-left:16px;position:relative;margin-bottom:5px;}
+.proj ul li::before{content:'';position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;}
+.proj.p1 ul li::before{background:var(--red);}
+.proj.p2 ul li::before{background:var(--amber);}
+.proj.p3 ul li::before{background:var(--accent);}
+.proj.p4 ul li::before{background:var(--purple);}
+
+.footer{text-align:center;padding:36px 24px;font-size:12px;color:var(--divider);border-top:1px solid var(--border);}
+
+@media(max-width:700px){.hm{grid-template-columns:repeat(6,1fr);}.proj-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">Prompt Wars 3 &mdash; Deep Dive</div>
+  <h1>Resolution TAT:<br>Five Levers, Four Projects</h1>
+  <p>Decomposing outage resolution time into attackable levers, mapping every data finding to a lever, then splitting into 4 parallel workstreams.</p>
+</div>
+
+<div class="container">
+
+<!-- ═══════ TAT EQUATION ═══════ -->
+<div class="eq">
+  <pre>
+Resolution TAT = <span class="ok">Time to Detect</span> + <strong>Time to Inform</strong> + <strong>Intelligent Payload</strong> + <strong>Bandwidth Mgmt</strong> + <strong>Verification</strong>
+                 <span class="ok">[~18 min P50]</span>    <strong>[0 → 63 min]</strong>    <strong>[ZERO today]</strong>       <strong>[unmanaged]</strong>     <strong>[~0 min lag]</strong>
+                 <span class="ok">Mostly solved</span>    <strong>82K incidents</strong>   <strong>Biggest gap</strong>       <strong>140 inc/day</strong>    <strong>Structurally OK</strong>
+                                  <strong>get NO inform</strong></pre>
+</div>
+
+<!-- ═══════ LEVER 1: TIME TO DETECT ═══════ -->
+<section>
+<div class="lc l5">
+  <div class="ln">Lever 1</div>
+  <h3>Time to Detection</h3>
+  <p class="lt">First device failure &rarr; Incident created in V2.1 system. Currently ~18 min P50 across all buckets.</p>
+
+  <div class="sub" style="color:var(--green);">Detection Lag by Bucket (first_fail &rarr; incident created)</div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Severity</th><th>Size</th><th>Duration</th><th>Incidents</th><th>P50 Detection Lag</th><th>P80 Detection Lag</th><th>Avg Total Duration</th></tr></thead>
+      <tbody>
+        <tr><td>LOCAL</td><td>TINY</td><td>LONG</td><td>82,932</td><td class="g">19 min</td><td>21 min</td><td class="r">1,095 min</td></tr>
+        <tr><td>MICRO</td><td>TINY</td><td>SHORT</td><td>57,458</td><td class="g">16 min</td><td>21 min</td><td>27 min</td></tr>
+        <tr><td>MICRO</td><td>TINY</td><td>MEDIUM</td><td>41,062</td><td class="g">16 min</td><td>21 min</td><td>130 min</td></tr>
+        <tr><td>LOCAL</td><td>MEDIUM</td><td>SHORT</td><td>817</td><td class="g">21 min</td><td>31 min</td><td>28 min</td></tr>
+        <tr><td>MAJOR</td><td>LARGE</td><td>SHORT</td><td>92</td><td class="a">25 min</td><td>36 min</td><td>27 min</td></tr>
+        <tr><td>MAJOR</td><td>LARGE</td><td>LONG</td><td>11</td><td class="a">25 min</td><td>30 min</td><td>429 min</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kf green">
+    <strong>Detection is largely solved.</strong> P50 is 16-25 min across all buckets. The 3-consecutive-ping + 15-min rule is working. LARGE incidents take marginally longer (25 min) due to aggregation logic. Detection is NOT the bottleneck.
+  </div>
+
+  <div class="sub" style="color:var(--green);">However: Detection of DRIFT is missing</div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Initial Severity</th><th>Final Severity</th><th>Count</th><th>Avg Duration</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>MICRO</td><td>MICRO</td><td>100,108</td><td class="g">69 min</td><td>Self-resolved. System correct.</td></tr>
+        <tr><td>MICRO</td><td class="r">LOCAL</td><td class="r">83,635</td><td class="r">1,082 min</td><td class="r">Drifted. Nobody told. Festered 18hr.</td></tr>
+        <tr><td>MICRO</td><td class="r">MAJOR</td><td>525</td><td class="r">1,323 min</td><td class="r">Drifted to critical. 22hr avg.</td></tr>
+        <tr><td>LOCAL</td><td>LOCAL</td><td>1,107</td><td class="g">52 min</td><td>Born LOCAL, resolved fast.</td></tr>
+        <tr><td>MAJOR</td><td>MAJOR</td><td>131</td><td class="g">77 min</td><td>Born MAJOR, resolved fast.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kf red">
+    <strong>83,635 incidents start as MICRO and drift to LOCAL (18hr avg).</strong> Detection works for the initial event, but there is <strong>no drift detection</strong> &mdash; the system doesn't flag a MICRO that isn't self-resolving at 60-90 min. This is the single biggest gap.
+  </div>
+</div>
+</section>
+
+<!-- ═══════ LEVER 2: TIME TO INFORM ═══════ -->
+<section>
+<div class="lc l1">
+  <div class="ln">Lever 2</div>
+  <h3>Time to Inform</h3>
+  <p class="lt">Incident detected &rarr; Partner/Customer actually receives communication. The inform gap is where 82,730 incidents fall into silence.</p>
+
+  <div class="sub" style="color:var(--red);">Inform Coverage &amp; Lag by Bucket</div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Severity</th><th>Size</th><th>Total Incidents</th><th>Informed?</th><th>Inform %</th><th>Partner Inform Lag</th><th>Customer Inform Lag</th><th>Avg Duration</th></tr></thead>
+      <tbody>
+        <tr><td>LOCAL</td><td>TINY</td><td class="r">82,932</td><td class="r">0</td><td class="r">0.0%</td><td class="r">NEVER</td><td class="r">NEVER</td><td class="r">1,095 min</td></tr>
+        <tr><td>LOCAL</td><td>MEDIUM</td><td>1,112</td><td class="g">1,112</td><td class="g">100%</td><td class="g">0 min</td><td>63 min</td><td>52 min</td></tr>
+        <tr><td>LOCAL</td><td>SMALL</td><td>907</td><td class="g">907</td><td class="g">100%</td><td class="g">0 min</td><td>&mdash;</td><td>116 min</td></tr>
+        <tr><td>MAJOR</td><td>SMALL</td><td>527</td><td class="g">527</td><td class="g">100%</td><td class="g">0 min</td><td>243 min</td><td>1,325 min</td></tr>
+        <tr><td>MAJOR</td><td>LARGE</td><td>132</td><td class="g">132</td><td class="g">100%</td><td class="g">0 min</td><td class="g">0 min</td><td>76 min</td></tr>
+        <tr><td>MAJOR</td><td>MEDIUM</td><td>127</td><td class="g">127</td><td class="g">100%</td><td class="g">0 min</td><td>63 min</td><td>508 min</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kf red">
+    <strong>82,932 LOCAL TINY incidents (96% of all LOCAL) get ZERO communication to partner or customer.</strong> For the buckets that DO get informed, partner alert is instant (0 min lag). Customer inform follows at T60 (63 min) for LOCAL and T0 for MAJOR LARGE.
+  </div>
+
+  <div class="sub" style="color:var(--red);">Message Sent vs Not Sent &mdash; Impact on TAT</div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Severity</th><th>Size</th><th>Partner Msg</th><th>Customer Msg</th><th>Incidents</th><th>Avg TAT</th><th>P50 TAT</th><th>P80 TAT</th></tr></thead>
+      <tbody>
+        <tr><td>LOCAL</td><td>TINY</td><td class="r">NO</td><td class="r">NO</td><td class="r">74,511</td><td class="r">762 min</td><td class="r">557 min</td><td class="r">852 min</td></tr>
+        <tr><td>LOCAL</td><td>MEDIUM</td><td class="g">YES</td><td>NO (in grace)</td><td>812</td><td class="g">58 min</td><td class="g">53 min</td><td class="g">71 min</td></tr>
+        <tr><td>LOCAL</td><td>MEDIUM</td><td class="g">YES</td><td class="g">YES</td><td>295</td><td>153 min</td><td>137 min</td><td>197 min</td></tr>
+        <tr><td>LOCAL</td><td>SMALL</td><td class="g">YES</td><td>NO</td><td>896</td><td>146 min</td><td>133 min</td><td>192 min</td></tr>
+        <tr><td>MAJOR</td><td>LARGE</td><td class="g">YES</td><td class="g">YES</td><td>131</td><td class="g">112 min</td><td class="g">67 min</td><td>122 min</td></tr>
+        <tr><td>MAJOR</td><td>SMALL</td><td class="g">YES</td><td class="g">YES</td><td>455</td><td>887 min</td><td>493 min</td><td>1,063 min</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kf pink">
+    <strong>LOCAL MEDIUM with partner msg only: P50 = 53 min. Same bucket with partner+customer msg: P50 = 137 min.</strong> This isn't because customer msg makes it worse &mdash; it's because customer msg only fires <em>after</em> grace (75 min). The incidents that get customer msg are the ones that DIDN'T resolve in grace. Partner-only msg incidents resolved fast before customer msg was needed.
+  </div>
+
+  <div class="sub" style="color:var(--amber);">WhatsApp Delivery Funnel (March 2026)</div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Template</th><th>Audience</th><th>Sent</th><th>Delivered</th><th>Read</th><th>Delivery %</th><th>Read %</th></tr></thead>
+      <tbody>
+        <tr><td>Detection</td><td>Customer</td><td>42,432</td><td>41,479</td><td>32,304</td><td class="g">92.9%</td><td>77.9%</td></tr>
+        <tr><td>Inform Delay</td><td>Customer</td><td>5,022</td><td>4,923</td><td>3,925</td><td class="r">66.7%</td><td>79.7%</td></tr>
+        <tr><td>Resolved</td><td>Customer</td><td>70,045</td><td>68,542</td><td>50,633</td><td class="g">92.9%</td><td>73.9%</td></tr>
+        <tr><td>Detection Minor</td><td>Partner</td><td>2,935</td><td>2,966</td><td>2,300</td><td class="g">99.0%</td><td>77.6%</td></tr>
+        <tr><td>Detection Major</td><td>Partner</td><td>54</td><td>55</td><td>42</td><td class="g">93.2%</td><td>76.4%</td></tr>
+        <tr><td>Attention Minor</td><td>Partner</td><td class="r">13</td><td>13</td><td>12</td><td class="r">56.5%</td><td>92.3%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kf red">
+    <strong>Partner escalation messages (Attention/Reminder) are near-zero volume.</strong> Only 13-23 sent in all of March. The escalation ladder T0&rarr;T120&rarr;T240 barely fires: 7,399 T0 alerts &rarr; only 23 T120 reminders (0.3%).
+  </div>
+</div>
+</section>
+
+<!-- ═══════ LEVER 3: INTELLIGENT PAYLOAD ═══════ -->
+<section>
+<div class="lc l3">
+  <div class="ln">Lever 3</div>
+  <h3>Intelligent Payload: WHY is it down? WHAT should partner do?</h3>
+  <p class="lt">Today the alert says "X devices are down." It doesn't say WHY or give a guided next step. This is the core intelligence gap.</p>
+
+  <div class="sub" style="color:var(--accent);">The Evidence: Customer Tickets Validate Real Pain</div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Severity</th><th>Size</th><th>Total Incidents</th><th>With "Supply Down" Tickets</th><th>% With Tickets</th><th>No Tickets</th><th>Total Tickets</th></tr></thead>
+      <tbody>
+        <tr><td>LOCAL</td><td>TINY</td><td>82,817</td><td class="a">2,345</td><td>2.8%</td><td>80,364</td><td>3,404</td></tr>
+        <tr><td>MICRO</td><td>TINY</td><td>98,375</td><td>235</td><td>0.2%</td><td>98,121</td><td>269</td></tr>
+        <tr><td>MAJOR</td><td>MEDIUM</td><td>127</td><td class="r">38</td><td class="r">31.5%</td><td>87</td><td>95</td></tr>
+        <tr><td>MAJOR</td><td>SMALL</td><td>527</td><td class="r">112</td><td class="r">22.4%</td><td>409</td><td>234</td></tr>
+        <tr><td>MAJOR</td><td>LARGE</td><td>132</td><td class="r">28</td><td class="r">22.0%</td><td>103</td><td>69</td></tr>
+        <tr><td>LOCAL</td><td>MEDIUM</td><td>1,112</td><td>54</td><td>5.2%</td><td>1,054</td><td>92</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="sub" style="color:var(--accent);">Customer Calls During Incidents</div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Severity</th><th>Size</th><th>Total Incidents</th><th>With Calls</th><th>% With Calls</th><th>Total Calls</th><th>Avg Calls/Incident</th></tr></thead>
+      <tbody>
+        <tr><td>LOCAL</td><td>TINY</td><td>82,817</td><td>2,857</td><td>3.4%</td><td class="a">7,352</td><td>2.6</td></tr>
+        <tr><td>MAJOR</td><td>SMALL</td><td>527</td><td>153</td><td class="r">29.0%</td><td class="r">822</td><td class="r">5.4</td></tr>
+        <tr><td>MAJOR</td><td>MEDIUM</td><td>127</td><td>38</td><td class="r">29.9%</td><td>193</td><td class="r">5.1</td></tr>
+        <tr><td>MAJOR</td><td>LARGE</td><td>132</td><td>24</td><td>18.2%</td><td>176</td><td class="r">7.3</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kf pink">
+    <strong>MAJOR LARGE incidents generate 7.3 calls per incident, MAJOR SMALL 5.4 calls.</strong> But LOCAL TINY — despite 82K incidents — only generates 3.4% with any calls. Two readings: (a) TINY affects few customers per incident, so fewer call; (b) TINY incidents are silent suffering with low call propensity but high cumulative pain.
+  </div>
+
+  <div class="sub" style="color:var(--accent);">TAT for Incidents WITH Tickets vs WITHOUT (Real Pain Signal)</div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Severity</th><th>Size</th><th>Ticket Status</th><th>Incidents</th><th>Avg TAT</th><th>P50 TAT</th><th>P80 TAT</th></tr></thead>
+      <tbody>
+        <tr><td>LOCAL</td><td>TINY</td><td class="r">HAS TICKET</td><td>1,768</td><td class="r">1,922 min</td><td class="r">1,370 min</td><td class="r">2,713 min</td></tr>
+        <tr><td>LOCAL</td><td>TINY</td><td>NO TICKET</td><td>72,686</td><td>734 min</td><td>552 min</td><td>832 min</td></tr>
+        <tr><td>MAJOR</td><td>SMALL</td><td class="r">HAS TICKET</td><td>86</td><td class="r">1,327 min</td><td class="r">760 min</td><td class="r">2,097 min</td></tr>
+        <tr><td>MAJOR</td><td>SMALL</td><td>NO TICKET</td><td>370</td><td>783 min</td><td>477 min</td><td>839 min</td></tr>
+        <tr><td>MAJOR</td><td>LARGE</td><td>HAS TICKET</td><td>27</td><td>168 min</td><td>87 min</td><td>188 min</td></tr>
+        <tr><td>MAJOR</td><td>LARGE</td><td>NO TICKET</td><td>104</td><td class="g">97 min</td><td class="g">62 min</td><td class="g">108 min</td></tr>
+        <tr><td>LOCAL</td><td>MEDIUM</td><td>HAS TICKET</td><td>54</td><td>112 min</td><td>80 min</td><td>167 min</td></tr>
+        <tr><td>LOCAL</td><td>MEDIUM</td><td>NO TICKET</td><td>1,053</td><td class="g">82 min</td><td class="g">62 min</td><td class="g">107 min</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kf red">
+    <strong>LOCAL TINY with tickets: P50 = 1,370 min (23 hours). Without tickets: P50 = 552 min.</strong> Incidents where customers are complaining take 2.5x LONGER to resolve. Tickets are a marker of the worst, most painful outages — not a resolution accelerator. These need intelligent payload the most.
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>What "Intelligent Payload" Means</h3>
+    <ul>
+      <li><strong style="color:var(--text)">Root Cause Classification</strong> &mdash; fiber cut vs OLT vs ISP backbone vs power, using optical power, topology, ping patterns</li>
+      <li><strong style="color:var(--text)">Guided Next Step</strong> &mdash; "Dispatch technician to junction X" vs "Call ISP NOC at number Y" vs "Wait for power restoration"</li>
+      <li><strong style="color:var(--text)">Priority Signal</strong> &mdash; "This affects a customer who just called CS" or "This OLT has had 3 outages this week"</li>
+      <li><strong style="color:var(--text)">ISP Correlation</strong> &mdash; "5 partners on the same POP are down &mdash; this is ISP-level, don't touch anything"</li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<!-- ═══════ LEVER 4: BANDWIDTH PROTECTION ═══════ -->
+<section>
+<div class="lc l4">
+  <div class="ln">Lever 4</div>
+  <h3>Partner Bandwidth Protection &amp; Management</h3>
+  <p class="lt">Partners are overwhelmed. 422 chronic partners face 140+ incidents/day. Without triage, everything gets equal (zero) priority.</p>
+
+  <div class="sub" style="color:var(--purple);">Daily Load on Partners (LOCAL+MAJOR)</div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Daily Load</th><th>Partner-Days</th><th>Avg Incidents/Day</th><th>Avg Devices/Day</th><th>Avg Majors/Day</th></tr></thead>
+      <tbody>
+        <tr><td class="g">1-3 incidents</td><td>2,356</td><td>1.9</td><td>2.6</td><td>0.0</td></tr>
+        <tr><td>4-10 incidents</td><td>3,416</td><td>6.6</td><td>12.7</td><td>0.0</td></tr>
+        <tr><td class="a">11-25 incidents</td><td>2,723</td><td>16.2</td><td>45.0</td><td>0.2</td></tr>
+        <tr><td class="r">26-50 incidents</td><td>460</td><td>31.7</td><td>126.7</td><td>0.6</td></tr>
+        <tr><td class="r">50+ incidents</td><td>2</td><td>51.5</td><td>332.0</td><td>3.0</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="sub" style="color:var(--purple);">Partner Chronic Profiles</div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Type</th><th>Partners</th><th>Incidents (7d)</th><th>Avg/Partner/Day</th><th>% of Total</th></tr></thead>
+      <tbody>
+        <tr><td class="r">CHRONIC HIGH (6+ days, 10+ avg/day)</td><td class="r">422</td><td class="r">59,195</td><td class="r">~20/day</td><td class="r">69.2%</td></tr>
+        <tr><td class="a">CHRONIC MOD (6+ days, 3-10 avg/day)</td><td>478</td><td>23,112</td><td>~7/day</td><td>27.0%</td></tr>
+        <tr><td>CHRONIC LOW (6+ days, &lt;3 avg/day)</td><td>189</td><td>2,636</td><td>~2/day</td><td>3.1%</td></tr>
+        <tr><td class="g">NORMAL</td><td>143</td><td>581</td><td>&lt;1/day</td><td>0.7%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kf amber">
+    <strong>A partner with 20 incidents/day can't triage 20 generic "devices down" alerts.</strong> They need: (a) prioritized queue showing worst-first, (b) bundled incidents by root cause, (c) clear "this one you CAN'T fix, ISP is handling it" signals to reduce noise.
+  </div>
+
+  <div class="sub" style="color:var(--purple);">Night-time Hourly Heatmap (P50 Recovery, LOCAL+MAJOR)</div>
+  <div class="hm">
+    <div class="hmc" style="background:rgba(224,30,0,.25);"><div class="hl">00</div><div class="hv" style="color:var(--red);">482m</div></div>
+    <div class="hmc" style="background:rgba(224,30,0,.20);"><div class="hl">01</div><div class="hv" style="color:var(--red);">401m</div></div>
+    <div class="hmc" style="background:rgba(224,30,0,.18);"><div class="hl">02</div><div class="hv" style="color:var(--red);">361m</div></div>
+    <div class="hmc" style="background:rgba(224,30,0,.15);"><div class="hl">03</div><div class="hv" style="color:var(--red);">301m</div></div>
+    <div class="hmc" style="background:rgba(0,128,67,.10);"><div class="hl">04</div><div class="hv" style="color:var(--amber);">87m</div></div>
+    <div class="hmc" style="background:rgba(0,128,67,.15);"><div class="hl">05</div><div class="hv" style="color:var(--green);">67m</div></div>
+    <div class="hmc" style="background:rgba(224,30,0,.10);"><div class="hl">06</div><div class="hv" style="color:var(--amber);">207m</div></div>
+    <div class="hmc" style="background:rgba(0,128,67,.10);"><div class="hl">07</div><div class="hv" style="color:var(--amber);">87m</div></div>
+    <div class="hmc" style="background:rgba(0,128,67,.08);"><div class="hl">08</div><div class="hv" style="color:var(--amber);">106m</div></div>
+    <div class="hmc" style="background:rgba(0,128,67,.08);"><div class="hl">09</div><div class="hv" style="color:var(--amber);">127m</div></div>
+    <div class="hmc" style="background:rgba(0,128,67,.15);"><div class="hl">10</div><div class="hv" style="color:var(--green);">89m</div></div>
+    <div class="hmc" style="background:rgba(0,128,67,.15);"><div class="hl">11</div><div class="hv" style="color:var(--green);">87m</div></div>
+    <div class="hmc" style="background:rgba(0,128,67,.20);"><div class="hl">12</div><div class="hv" style="color:var(--green);">57m</div></div>
+    <div class="hmc" style="background:rgba(0,128,67,.25);"><div class="hl">13</div><div class="hv" style="color:var(--green);">46m</div></div>
+    <div class="hmc" style="background:rgba(0,128,67,.28);"><div class="hl">14</div><div class="hv" style="color:var(--green);">38m</div></div>
+    <div class="hmc" style="background:rgba(0,128,67,.25);"><div class="hl">15</div><div class="hv" style="color:var(--green);">46m</div></div>
+    <div class="hmc" style="background:rgba(0,128,67,.30);"><div class="hl">16</div><div class="hv" style="color:var(--green);">32m</div></div>
+    <div class="hmc" style="background:rgba(0,128,67,.25);"><div class="hl">17</div><div class="hv" style="color:var(--green);">37m</div></div>
+    <div class="hmc" style="background:rgba(0,128,67,.20);"><div class="hl">18</div><div class="hv" style="color:var(--green);">53m</div></div>
+    <div class="hmc" style="background:rgba(0,128,67,.15);"><div class="hl">19</div><div class="hv" style="color:var(--green);">59m</div></div>
+    <div class="hmc" style="background:rgba(224,30,0,.22);"><div class="hl">20</div><div class="hv" style="color:var(--red);">552m</div></div>
+    <div class="hmc" style="background:rgba(224,30,0,.30);"><div class="hl">21</div><div class="hv" style="color:var(--red);">672m</div></div>
+    <div class="hmc" style="background:rgba(224,30,0,.25);"><div class="hl">22</div><div class="hv" style="color:var(--red);">557m</div></div>
+    <div class="hmc" style="background:rgba(224,30,0,.22);"><div class="hl">23</div><div class="hv" style="color:var(--red);">496m</div></div>
+  </div>
+
+  <div class="kf red">
+    <strong>8 PM &ndash; 3 AM: P50 = 301-672 min. Incidents wait for sunrise.</strong> Night-time isn't "slower partners" &mdash; it's "nobody is working." Morning burst queue + tighter night escalation = bandwidth management across time.
+  </div>
+
+  <div class="sub" style="color:var(--purple);">Full TAT Decomposition: Detection vs Post-Detection</div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Severity</th><th>Size</th><th>Time</th><th>Incidents</th><th>P50 Total TAT</th><th>Avg Detection</th><th>Avg Post-Detection</th></tr></thead>
+      <tbody>
+        <tr><td>LOCAL</td><td>TINY</td><td class="r">NIGHT</td><td>57,370</td><td class="r">557 min</td><td class="g">18 min</td><td class="r">705 min</td></tr>
+        <tr><td>LOCAL</td><td>TINY</td><td>DAY</td><td>17,141</td><td class="r">558 min</td><td class="g">18 min</td><td class="r">878 min</td></tr>
+        <tr><td>LOCAL</td><td>MEDIUM</td><td>DAY</td><td>724</td><td class="g">62 min</td><td>25 min</td><td class="g">53 min</td></tr>
+        <tr><td>LOCAL</td><td>MEDIUM</td><td>NIGHT</td><td>383</td><td class="g">67 min</td><td>28 min</td><td class="g">65 min</td></tr>
+        <tr><td>MAJOR</td><td>LARGE</td><td>DAY</td><td>75</td><td class="g">67 min</td><td>29 min</td><td class="g">63 min</td></tr>
+        <tr><td>MAJOR</td><td>LARGE</td><td>NIGHT</td><td>56</td><td class="g">67 min</td><td>30 min</td><td class="g">107 min</td></tr>
+        <tr><td>MAJOR</td><td>SMALL</td><td>NIGHT</td><td>250</td><td class="r">597 min</td><td>26 min</td><td class="r">1,053 min</td></tr>
+        <tr><td>MAJOR</td><td>SMALL</td><td>DAY</td><td>206</td><td class="a">418 min</td><td>29 min</td><td class="a">622 min</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kf pink">
+    <strong>Detection = 18-30 min everywhere. Post-detection = 53 min (best) to 1,053 min (worst).</strong> 97-99% of TAT is post-detection. The entire problem is what happens AFTER detection.
+  </div>
+</div>
+</section>
+
+<!-- ═══════ LEVER 5: VERIFICATION ═══════ -->
+<section>
+<div class="lc l5">
+  <div class="ln">Lever 5</div>
+  <h3>Verification</h3>
+  <p class="lt">Last device recovers &rarr; Incident marked closed. Is there a lag? Do incidents bounce?</p>
+
+  <div class="sub" style="color:var(--green);">Verification Lag (last device recovery &rarr; incident closed)</div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Severity</th><th>Size</th><th>Incidents</th><th>Avg Recovery %</th><th>P50 Verification Lag</th><th>Avg Total TAT</th></tr></thead>
+      <tbody>
+        <tr><td>MICRO</td><td>TINY</td><td>96,631</td><td class="g">100%</td><td class="g">0 min</td><td>93 min</td></tr>
+        <tr><td>LOCAL</td><td>TINY</td><td>74,511</td><td class="g">100%</td><td class="g">0 min</td><td>762 min</td></tr>
+        <tr><td>LOCAL</td><td>MEDIUM</td><td>1,107</td><td class="g">100%</td><td class="g">-66 min*</td><td>83 min</td></tr>
+        <tr><td>MAJOR</td><td>LARGE</td><td>131</td><td class="g">100%</td><td class="g">-330 min*</td><td>112 min</td></tr>
+        <tr><td>MAJOR</td><td>SMALL</td><td>456</td><td class="g">100%</td><td class="g">-40 min*</td><td>886 min</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kf green">
+    <strong>Verification lag is ~0 minutes for TINY (most incidents).</strong> Negative values for MEDIUM/LARGE mean the incident is closed BEFORE the last device formally recovers &mdash; likely because closure is triggered at a recovery threshold (e.g., 80% devices back), not 100%. <strong>Verification is NOT a bottleneck.</strong> The system closes promptly.
+  </div>
+
+  <p style="font-size:13px; color:var(--muted); margin-top:12px;">* Negative lag = incident closed before last device recovery timestamp, indicating threshold-based closure.</p>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>But Verification Has a Different Role to Play</h3>
+    <p>While verification LAG is fine, the system lacks <strong style="color:var(--text)">proactive verification intelligence</strong>:</p>
+    <ul>
+      <li><strong style="color:var(--text)">False positive detection</strong> &mdash; 97% of LOCAL TINY incidents have zero tickets and zero calls. Some may be detection artifacts, not real outages. Can we identify and suppress these?</li>
+      <li><strong style="color:var(--text)">Recurrence detection</strong> &mdash; if the same location has 5 outages in a week, the "fix" isn't holding. Flag chronic locations for infrastructure investment.</li>
+      <li><strong style="color:var(--text)">Recovery confirmation to partner</strong> &mdash; partner doesn't know if their fix worked. A "your outage is resolved, 100% devices back" message closes the loop.</li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<!-- ═══════ FOUR PROJECTS ═══════ -->
+<section>
+  <div class="sl">Workstream Split</div>
+  <div class="st">Four Parallel Projects</div>
+  <div class="ss">Each project maps to specific levers, can be built independently by one person + Claude Code, and stitches back via shared incident data model.</div>
+
+  <div class="proj-grid">
+    <!-- PROJECT 1 -->
+    <div class="proj p1">
+      <div class="ptag">Project 1 &mdash; Person A</div>
+      <h4>Drift Detection &amp; Early Alert Engine</h4>
+      <p><strong style="color:var(--text)">Levers:</strong> Time to Detect (drift), Time to Inform</p>
+      <p><strong style="color:var(--text)">Target:</strong> 83,635 MICRO&rarr;LOCAL drifting incidents (43% of all)</p>
+      <ul>
+        <li><strong style="color:var(--text)">Build drift-detection logic</strong> &mdash; flag MICROs still active at 60/90/120 min that historically don't self-resolve</li>
+        <li><strong style="color:var(--text)">Design early partner alert</strong> for drifting incidents before they become LOCAL</li>
+        <li><strong style="color:var(--text)">Build severity upgrade predictor</strong> &mdash; which MICROs will drift? (features: device count trend, OLT history, time-of-day, partner profile)</li>
+        <li><strong style="color:var(--text)">False positive filter</strong> &mdash; use ticket/call overlay to identify detection artifacts (97% of TINY have zero customer signal)</li>
+      </ul>
+      <p style="margin-top:12px;"><strong style="color:var(--red)">Impact:</strong> If 30% of drifting MICROs get early signal &rarr; ~12,500 incidents/week resolve 16hr faster</p>
+    </div>
+
+    <!-- PROJECT 2 -->
+    <div class="proj p2">
+      <div class="ptag">Project 2 &mdash; Person B</div>
+      <h4>Intelligent Payload: AI Root Cause &amp; Action Agent</h4>
+      <p><strong style="color:var(--text)">Levers:</strong> Intelligent Payload, Verification</p>
+      <p><strong style="color:var(--text)">Target:</strong> All alerted incidents &mdash; transform "X devices down" into "WHY + WHAT TO DO"</p>
+      <ul>
+        <li><strong style="color:var(--text)">Root cause classifier</strong> &mdash; fiber cut / OLT / ISP backbone / power / device-level, using optical power, topology, ping patterns</li>
+        <li><strong style="color:var(--text)">Action generation engine</strong> &mdash; specific next step per root cause (dispatch tech / call ISP NOC / wait / restart)</li>
+        <li><strong style="color:var(--text)">ISP correlation detector</strong> &mdash; multi-partner same-POP pattern &rarr; "ISP issue, we're escalating, do nothing"</li>
+        <li><strong style="color:var(--text)">Verification intelligence</strong> &mdash; recurrence detection, false positive flagging, "your fix worked" confirmation</li>
+      </ul>
+      <p style="margin-top:12px;"><strong style="color:var(--amber)">Impact:</strong> RCA accuracy &gt;80%. Partners act on first alert instead of waiting/guessing. Target P50 LOCAL SMALL from 133m to &lt;60m.</p>
+    </div>
+
+    <!-- PROJECT 3 -->
+    <div class="proj p3">
+      <div class="ptag">Project 3 &mdash; Person C</div>
+      <h4>Escalation Engine &amp; Night-time Handling</h4>
+      <p><strong style="color:var(--text)">Levers:</strong> Time to Inform (escalation), Bandwidth Protection (night)</p>
+      <p><strong style="color:var(--text)">Target:</strong> Fix the dead escalation ladder + close the 7x night penalty</p>
+      <ul>
+        <li><strong style="color:var(--text)">Fix T120/T240 pipeline</strong> &mdash; currently 0.3% fire rate. Make it 100% for unresolved incidents.</li>
+        <li><strong style="color:var(--text)">Night-time differentiated rules</strong> &mdash; tighter grace (30 min instead of 60), auto-escalation if no ACK</li>
+        <li><strong style="color:var(--text)">Morning burst queue</strong> &mdash; prioritized action list for overnight incidents when partners wake up</li>
+        <li><strong style="color:var(--text)">Partner ACK tracking</strong> &mdash; seen vs ignored vs acted. Dynamic grace based on partner response history.</li>
+        <li><strong style="color:var(--text)">Auto-ISP escalation</strong> for correlated multi-partner outages with evidence package</li>
+      </ul>
+      <p style="margin-top:12px;"><strong style="color:var(--accent)">Impact:</strong> Night P50 from 431m to &lt;120m. Escalation fire rate from 0.3% to 100%.</p>
+    </div>
+
+    <!-- PROJECT 4 -->
+    <div class="proj p4">
+      <div class="ptag">Project 4 &mdash; Person D</div>
+      <h4>Partner Performance &amp; Bandwidth Management</h4>
+      <p><strong style="color:var(--text)">Levers:</strong> Bandwidth Protection, Verification (feedback loop)</p>
+      <p><strong style="color:var(--text)">Target:</strong> 422 chronic partners generating 69% of incidents</p>
+      <ul>
+        <li><strong style="color:var(--text)">Partner scorecard</strong> &mdash; P50 recovery, ACK rate, grace resolution %, night penalty, vs city average</li>
+        <li><strong style="color:var(--text)">Incident bundling &amp; triage</strong> &mdash; group partner's 20 daily incidents by root cause cluster, show prioritized queue</li>
+        <li><strong style="color:var(--text)">Tiered treatment engine</strong> &mdash; fast partners (P50 &lt;60m) get standard flow; slow partners (P50 &gt;4hr) get shorter grace + earlier escalation</li>
+        <li><strong style="color:var(--text)">Chronic pattern detection</strong> &mdash; same OLT/location recurring &rarr; flag for infrastructure investment, not just repeated alerts</li>
+        <li><strong style="color:var(--text)">Best-practice transfer</strong> &mdash; what do 111 fast partners do differently? Codify and push to slow partners.</li>
+      </ul>
+      <p style="margin-top:12px;"><strong style="color:var(--purple)">Impact:</strong> Move the median partner P50 from 388m to &lt;120m. Reduce chronic partner incident volume by identifying infra issues.</p>
+    </div>
+  </div>
+
+  <!-- Stitch-back -->
+  <div class="card" style="margin-top:24px;">
+    <h3>How They Stitch Back Together</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Integration Point</th><th>Projects</th><th>Mechanism</th></tr></thead>
+        <tbody>
+          <tr><td>Shared Incident Data Model</td><td>All 4</td><td>Every project reads/writes to the same incidents + checkpoint tables. New fields: drift_flag, rca_classification, partner_tier, night_escalation_status.</td></tr>
+          <tr><td>Alert Payload</td><td>P1 + P2</td><td>P1 decides WHEN to alert (drift detection). P2 decides WHAT to say (RCA + action). Combined = intelligent early alert.</td></tr>
+          <tr><td>Escalation Rules</td><td>P3 + P4</td><td>P3 builds the escalation engine. P4 provides partner tier input (fast/slow/chronic) that P3 uses to set dynamic grace windows.</td></tr>
+          <tr><td>Night Handling</td><td>P1 + P3</td><td>P1 detects overnight drift. P3 applies night-specific escalation rules. Together = no more "wait for sunrise."</td></tr>
+          <tr><td>Feedback Loop</td><td>P2 + P4</td><td>P2's verification data feeds P4's partner scorecard. P4's chronic patterns feed P2's RCA model (location-based priors).</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Summary equation -->
+  <div style="margin-top:28px;padding:28px 32px;background:linear-gradient(135deg,#FFE5F6 0%,#F1E5FF 100%);border:1px solid rgba(217,0,141,.2);border-radius:14px;">
+    <h3 style="font-size:17px;color:var(--accent);margin-bottom:12px;">The Combined Effect</h3>
+    <pre style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);line-height:2;">
+<strong style="color:var(--red);">P1 Drift Detection</strong>  → 83K incidents get early signal (from 0% today)
+<strong style="color:var(--amber);">P2 Intelligent RCA</strong>  → Partners know WHY + WHAT (from generic "devices down")
+<strong style="color:var(--accent);">P3 Escalation Fix</strong>   → Night P50: 431m → &lt;120m. Escalation: 0.3% → 100%
+<strong style="color:var(--purple);">P4 Partner Mgmt</strong>     → Median partner P50: 388m → &lt;120m. Chronic patterns flagged.
+
+Combined Target: <strong style="color:var(--green);">P50 Resolution TAT cut by 50%+ across all buckets</strong></pre>
+  </div>
+</section>
+
+</div>
+
+<div class="footer">
+  <em>Problem exploration &mdash; no implementation yet.</em><br>
+  Prompt Wars 3 &mdash; Outage Resolution TAT &middot; Data as of 2026-03-28
+</div>
+</body>
+</html>

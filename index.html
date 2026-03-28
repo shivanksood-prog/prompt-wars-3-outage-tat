@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt Wars 3 — Outage Resolution TAT: Problem Exploration</title>
+<style>
+  :root {
+    --bg: #161021;
+    --card: #352D42;
+    --border: #443152;
+    --text: #FAF9FC;
+    --muted: #A7A1B2;
+    --accent: #D9008D;
+    --accent-light: #FFB2E4;
+    --accent-bg: #FFE5F6;
+    --green: #008043;
+    --green-bg: #E1FAED;
+    --red: #E01E00;
+    --red-bg: #FFE9E5;
+    --amber: #FF8000;
+    --amber-bg: #FFE6CC;
+    --purple: #6D17CE;
+    --purple-bg: #F1E5FF;
+    --divider: #665E75;
+    --subtle: #D7D3E0;
+    --light-bg: #F1EDF7;
+    --gold-start: #D5AF4A;
+    --gold-mid: #F2E983;
+    --gold-end: #D5B14B;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 64px 24px 48px;
+    text-align: center;
+    background: linear-gradient(135deg, var(--bg) 0%, #2a1d3a 50%, var(--bg) 100%);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 60% 40%, rgba(217,0,141,0.08) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 100px;
+    background: rgba(217,0,141,0.15);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, var(--text) 0%, var(--accent-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    font-size: 17px;
+    color: var(--muted);
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+  .hero p strong { color: var(--accent); -webkit-text-fill-color: var(--accent); }
+
+  /* ── Container ── */
+  .container {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ── Section ── */
+  section {
+    padding: 56px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  section:last-child { border-bottom: none; }
+
+  .section-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-size: clamp(22px, 3vw, 32px);
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .section-subtitle {
+    font-size: 15px;
+    color: var(--muted);
+    margin-bottom: 32px;
+    max-width: 680px;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .card h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .card h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent-light);
+    margin-top: 18px;
+    margin-bottom: 8px;
+  }
+  .card p, .card li {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+  .card ul {
+    list-style: none;
+    padding: 0;
+  }
+  .card ul li {
+    padding-left: 20px;
+    position: relative;
+    margin-bottom: 6px;
+  }
+  .card ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 9px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* ── Stat Grid ── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1.2;
+  }
+  .stat-value.green { color: var(--green); }
+  .stat-value.red { color: var(--red); }
+  .stat-value.amber { color: var(--amber); }
+  .stat-value.purple { color: var(--purple); }
+  .stat-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+
+  /* ── Tables ── */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 20px 0;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th {
+    background: var(--border);
+    color: var(--text);
+    font-weight: 700;
+    padding: 12px 14px;
+    text-align: left;
+    white-space: nowrap;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-top: 1px solid rgba(68,49,82,0.6);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  tbody tr:nth-child(even) { background: rgba(241,237,247,0.03); }
+  tbody tr:hover { background: rgba(217,0,141,0.05); }
+  td.highlight { color: var(--accent); font-weight: 700; }
+  td.green { color: var(--green); font-weight: 600; }
+  td.red { color: var(--red); font-weight: 700; }
+  td.amber { color: var(--amber); font-weight: 600; }
+
+  /* ── Severity Matrix ── */
+  .matrix-grid {
+    display: grid;
+    grid-template-columns: 140px repeat(3, 1fr);
+    gap: 2px;
+    margin: 20px 0;
+    font-size: 13px;
+  }
+  .matrix-header {
+    background: var(--border);
+    padding: 12px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--text);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .matrix-row-header {
+    background: var(--card);
+    padding: 12px;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+  }
+  .matrix-cell {
+    padding: 12px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .matrix-cell.micro { background: rgba(109,23,206,0.12); color: var(--purple); }
+  .matrix-cell.local { background: rgba(255,128,0,0.12); color: var(--amber); }
+  .matrix-cell.major { background: rgba(224,30,0,0.12); color: var(--red); }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .badge-micro { background: var(--purple-bg); color: var(--purple); }
+  .badge-local { background: var(--amber-bg); color: var(--amber); }
+  .badge-major { background: var(--red-bg); color: var(--red); }
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-accent { background: rgba(217,0,141,0.15); color: var(--accent); }
+
+  /* ── Bucket Cards ── */
+  .bucket-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 32px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .bucket-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px;
+    height: 100%;
+  }
+  .bucket-card.b1::before { background: var(--red); }
+  .bucket-card.b2::before { background: var(--amber); }
+  .bucket-card.b3::before { background: var(--purple); }
+  .bucket-card.b4::before { background: var(--accent); }
+  .bucket-card.b5::before { background: var(--green); }
+
+  .bucket-number {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .bucket-card.b1 .bucket-number { color: var(--red); }
+  .bucket-card.b2 .bucket-number { color: var(--amber); }
+  .bucket-card.b3 .bucket-number { color: var(--purple); }
+  .bucket-card.b4 .bucket-number { color: var(--accent); }
+  .bucket-card.b5 .bucket-number { color: var(--green); }
+
+  .bucket-card h3 {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+  .bucket-section-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-top: 20px;
+    margin-bottom: 8px;
+  }
+  .bucket-card .what { color: var(--text); }
+  .bucket-card .why { color: var(--amber); }
+  .bucket-card .evidence { color: var(--purple); }
+  .bucket-card .gap { color: var(--red); }
+
+  .core-gap {
+    margin-top: 20px;
+    padding: 14px 18px;
+    background: rgba(224,30,0,0.08);
+    border: 1px solid rgba(224,30,0,0.2);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 600;
+  }
+  .core-gap span { color: var(--red); font-weight: 700; }
+
+  /* ── Cross-cutting themes ── */
+  .theme-row {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(68,49,82,0.5);
+    font-size: 14px;
+  }
+  .theme-row:last-child { border-bottom: none; }
+  .theme-name {
+    font-weight: 700;
+    color: var(--text);
+  }
+  .theme-desc { color: var(--muted); }
+
+  /* ── Opportunity ── */
+  .opportunity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .opp-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+  }
+  .opp-metric { font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+  .opp-current { font-size: 22px; font-weight: 800; color: var(--red); }
+  .opp-arrow { font-size: 18px; color: var(--muted); margin: 0 8px; }
+  .opp-target { font-size: 22px; font-weight: 800; color: var(--green); }
+  .opp-impact { font-size: 12px; color: var(--accent-light); margin-top: 8px; line-height: 1.5; }
+
+  /* ── Breakdown bar ── */
+  .breakdown-bar {
+    display: flex;
+    height: 36px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+  .breakdown-segment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    white-space: nowrap;
+    padding: 0 8px;
+  }
+
+  .breakdown-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 10px;
+    font-size: 13px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+
+  /* ── Callout box ── */
+  .callout {
+    padding: 20px 24px;
+    border-radius: 10px;
+    margin: 24px 0;
+    font-size: 15px;
+    line-height: 1.7;
+    font-weight: 600;
+  }
+  .callout.accent {
+    background: rgba(217,0,141,0.1);
+    border: 1px solid rgba(217,0,141,0.25);
+    color: var(--accent-light);
+  }
+  .callout.red {
+    background: rgba(224,30,0,0.08);
+    border: 1px solid rgba(224,30,0,0.2);
+    color: #ff9080;
+  }
+
+  /* ── Day/Night comparison ── */
+  .day-night-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .dn-card {
+    border-radius: 12px;
+    padding: 22px;
+    text-align: center;
+  }
+  .dn-card.day {
+    background: rgba(0,128,67,0.08);
+    border: 1px solid rgba(0,128,67,0.2);
+  }
+  .dn-card.night {
+    background: rgba(224,30,0,0.08);
+    border: 1px solid rgba(224,30,0,0.2);
+  }
+  .dn-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .dn-card.day .dn-label { color: var(--green); }
+  .dn-card.night .dn-label { color: var(--red); }
+  .dn-value { font-size: 36px; font-weight: 800; }
+  .dn-card.day .dn-value { color: var(--green); }
+  .dn-card.night .dn-value { color: var(--red); }
+  .dn-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* ── Pipeline flow ── */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin: 24px 0;
+    flex-wrap: wrap;
+  }
+  .pipe-step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 20px;
+    text-align: center;
+    min-width: 130px;
+  }
+  .pipe-step .pipe-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .pipe-step .pipe-value { font-size: 16px; font-weight: 800; color: var(--text); margin-top: 4px; }
+  .pipe-arrow { font-size: 20px; color: var(--divider); }
+
+  /* ── Comms rules ── */
+  .comm-rules {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 20px 0;
+  }
+  .comm-rule {
+    border-radius: 10px;
+    padding: 18px;
+    text-align: center;
+  }
+  .comm-rule.micro {
+    background: rgba(109,23,206,0.08);
+    border: 1px solid rgba(109,23,206,0.2);
+  }
+  .comm-rule.local {
+    background: rgba(255,128,0,0.08);
+    border: 1px solid rgba(255,128,0,0.2);
+  }
+  .comm-rule.major {
+    background: rgba(224,30,0,0.08);
+    border: 1px solid rgba(224,30,0,0.2);
+  }
+  .comm-rule .cr-sev { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; }
+  .comm-rule.micro .cr-sev { color: var(--purple); }
+  .comm-rule.local .cr-sev { color: var(--amber); }
+  .comm-rule.major .cr-sev { color: var(--red); }
+  .comm-rule .cr-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* ── Key finding callout ── */
+  .key-finding {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 20px;
+    background: rgba(217,0,141,0.06);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .key-finding strong { color: var(--accent); }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 40px 24px;
+    font-size: 13px;
+    color: var(--divider);
+    border-top: 1px solid var(--border);
+  }
+  .footer em { color: var(--muted); }
+
+  /* ── Responsive ── */
+  @media (max-width: 700px) {
+    .day-night-grid, .comm-rules { grid-template-columns: 1fr; }
+    .theme-row { grid-template-columns: 1fr; }
+    .matrix-grid { font-size: 11px; }
+    .pipeline { flex-direction: column; }
+    .pipe-arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<div class="hero">
+  <div class="hero-badge">Prompt Wars 3</div>
+  <h1>Outage Resolution TAT<br>Problem Exploration</h1>
+  <p>Wiom detects outages in ~5 minutes, but <strong>partners don't know WHY something is down or WHAT to do</strong> — so resolution depends on blind escalation rather than guided diagnosis. The gap between detection and resolution is where customers lose internet and trust.</p>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════ SECTION 2: SYSTEM TODAY ═══════════════════ -->
+<section>
+  <div class="section-label">Section 2</div>
+  <div class="section-title">The System Today (V2.1)</div>
+  <div class="section-subtitle">Detection pipeline, severity classification, and communication rules currently in production.</div>
+
+  <div class="card">
+    <h3>Detection Pipeline</h3>
+    <ul>
+      <li>Ping every <strong style="color:var(--text)">5 minutes</strong> per device (~326K devices, ~3,000 partners)</li>
+      <li>Outage confirmed after: <strong style="color:var(--text)">3 consecutive failed pings + 15 min duration</strong></li>
+      <li>Severity classified via <strong style="color:var(--text)">Size x Duration</strong> matrix</li>
+    </ul>
+  </div>
+
+  <h4 style="font-size:15px; font-weight:700; margin-bottom:12px; color:var(--text);">Severity Matrix (Size x Duration)</h4>
+  <div class="matrix-grid">
+    <div class="matrix-header" style="background:transparent;"></div>
+    <div class="matrix-header">Short (15-59m)</div>
+    <div class="matrix-header">Medium (60-239m)</div>
+    <div class="matrix-header">Long (&ge;240m)</div>
+
+    <div class="matrix-row-header">Tiny (1-9)</div>
+    <div class="matrix-cell micro">MICRO</div>
+    <div class="matrix-cell micro">MICRO</div>
+    <div class="matrix-cell local">LOCAL</div>
+
+    <div class="matrix-row-header">Small (10-25)</div>
+    <div class="matrix-cell micro">MICRO</div>
+    <div class="matrix-cell local">LOCAL</div>
+    <div class="matrix-cell major">MAJOR</div>
+
+    <div class="matrix-row-header">Medium (26-100)</div>
+    <div class="matrix-cell local">LOCAL</div>
+    <div class="matrix-cell local">LOCAL</div>
+    <div class="matrix-cell major">MAJOR</div>
+
+    <div class="matrix-row-header">Large (&gt;100)</div>
+    <div class="matrix-cell major">MAJOR</div>
+    <div class="matrix-cell major">MAJOR</div>
+    <div class="matrix-cell major">MAJOR</div>
+  </div>
+
+  <h4 style="font-size:15px; font-weight:700; margin: 28px 0 14px; color:var(--text);">Communication Rules</h4>
+  <div class="comm-rules">
+    <div class="comm-rule micro">
+      <div class="cr-sev">Micro</div>
+      <div class="cr-text">No user comms.<br>Internal/partner analytics only.</div>
+    </div>
+    <div class="comm-rule local">
+      <div class="cr-sev">Local</div>
+      <div class="cr-text">Partner gets <strong style="color:var(--amber)">60-min grace</strong>.<br>If unresolved &rarr; user notified at ~75 min.</div>
+    </div>
+    <div class="comm-rule major">
+      <div class="cr-sev">Major</div>
+      <div class="cr-text"><strong style="color:var(--red)">Immediate</strong> user comms.<br>No partner grace window.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px;">
+    <h3>Communication Channels</h3>
+    <ul>
+      <li>WhatsApp (primary), App Push, SMS</li>
+      <li>Partner alerts via WhatsApp templates</li>
+      <li>Customer alerts: detection, delay-inform (T60), and resolved messages</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════════ SECTION 3: DATA ═══════════════════ -->
+<section>
+  <div class="section-label">Section 3</div>
+  <div class="section-title">What the Data Shows</div>
+  <div class="section-subtitle">Live data from Metabase, last 7-15 days. All numbers are production actuals.</div>
+
+  <!-- 3.1 Scale -->
+  <h4 style="font-size:16px; font-weight:700; margin-bottom:16px; color:var(--text);">3.1 Scale of the Problem</h4>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-value">~24,000</div>
+      <div class="stat-label">Daily Incidents</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value amber">37-42K</div>
+      <div class="stat-label">Devices Impacted / Day</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value purple">~1,200</div>
+      <div class="stat-label">Partners Affected / Day</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value green">56-72m</div>
+      <div class="stat-label">P50 Recovery</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value amber">6-7.5 hrs</div>
+      <div class="stat-label">P80 Recovery</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value red">14-16 hrs</div>
+      <div class="stat-label">P95 Recovery</div>
+    </div>
+  </div>
+
+  <!-- 3.2 Distribution -->
+  <h4 style="font-size:16px; font-weight:700; margin: 32px 0 14px; color:var(--text);">3.2 Incident Distribution by Type (7-day window)</h4>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Size Bucket</th><th>Duration</th><th>Severity</th><th>Count</th><th>% of Total</th><th>Avg Duration</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>TINY</td><td>LONG (&gt;4hr)</td><td><span class="badge badge-local">LOCAL</span></td><td class="red">82,624</td><td class="highlight">43.5%</td><td class="red">1,096 min (~18hr)</td></tr>
+        <tr><td>TINY</td><td>SHORT</td><td><span class="badge badge-micro">MICRO</span></td><td>56,933</td><td>30.0%</td><td>31 min</td></tr>
+        <tr><td>TINY</td><td>MEDIUM</td><td><span class="badge badge-micro">MICRO</span></td><td>40,650</td><td>21.4%</td><td>135 min</td></tr>
+        <tr><td>SMALL</td><td>SHORT</td><td><span class="badge badge-micro">MICRO</span></td><td>2,107</td><td>1.1%</td><td>142 min</td></tr>
+        <tr><td>SMALL</td><td>MEDIUM</td><td><span class="badge badge-local">LOCAL</span></td><td>898</td><td>0.5%</td><td>303 min</td></tr>
+        <tr><td>MEDIUM</td><td>SHORT</td><td><span class="badge badge-local">LOCAL</span></td><td>817</td><td>0.4%</td><td>297 min</td></tr>
+        <tr><td>SMALL</td><td>LONG</td><td><span class="badge badge-major">MAJOR</span></td><td class="red">524</td><td>0.3%</td><td class="red">1,624 min (~27hr!)</td></tr>
+        <tr><td>MEDIUM</td><td>MEDIUM</td><td><span class="badge badge-local">LOCAL</span></td><td>290</td><td>0.2%</td><td>473 min</td></tr>
+        <tr><td>MEDIUM</td><td>LONG</td><td><span class="badge badge-major">MAJOR</span></td><td>126</td><td>0.07%</td><td>1,043 min</td></tr>
+        <tr><td>LARGE</td><td>SHORT</td><td><span class="badge badge-major">MAJOR</span></td><td>91</td><td>0.05%</td><td>605 min</td></tr>
+        <tr><td>LARGE</td><td>MEDIUM</td><td><span class="badge badge-major">MAJOR</span></td><td>29</td><td>0.02%</td><td>767 min</td></tr>
+        <tr><td>LARGE</td><td>LONG</td><td><span class="badge badge-major">MAJOR</span></td><td>11</td><td>0.006%</td><td>1,333 min</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="key-finding">
+    <strong>Key finding:</strong> The single largest bucket is <strong>TINY + LONG = LOCAL</strong> at 43.5% of all incidents. These are 1-9 device outages lasting &gt;4 hours. Small pockets, massive duration.
+  </div>
+
+  <!-- 3.3 Day vs Night -->
+  <h4 style="font-size:16px; font-weight:700; margin: 36px 0 14px; color:var(--text);">3.3 Day vs Night &mdash; The Killer Gap</h4>
+  <div class="day-night-grid">
+    <div class="dn-card day">
+      <div class="dn-label">Day &mdash; LOCAL P50</div>
+      <div class="dn-value">61 min</div>
+      <div class="dn-sub">21,847 incidents &middot; P80: 351m &middot; P95: 1,177m</div>
+    </div>
+    <div class="dn-card night">
+      <div class="dn-label">Night &mdash; LOCAL P50</div>
+      <div class="dn-value">431 min</div>
+      <div class="dn-sub">62,782 incidents &middot; P80: 652m &middot; P95: 1,102m</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Time</th><th>Severity</th><th>Incidents</th><th>P50 Recovery</th><th>P80 Recovery</th><th>P95 Recovery</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="green">DAY</td><td><span class="badge badge-local">LOCAL</span></td><td>21,847</td><td class="green">61 min</td><td>351 min</td><td>1,177 min</td></tr>
+        <tr><td class="red">NIGHT</td><td><span class="badge badge-local">LOCAL</span></td><td class="highlight">62,782</td><td class="red">431 min</td><td class="red">652 min</td><td>1,102 min</td></tr>
+        <tr><td class="green">DAY</td><td><span class="badge badge-major">MAJOR</span></td><td>355</td><td class="green">32 min</td><td>167 min</td><td>437 min</td></tr>
+        <tr><td class="red">NIGHT</td><td><span class="badge badge-major">MAJOR</span></td><td>426</td><td class="red">61 min</td><td class="red">357 min</td><td>757 min</td></tr>
+        <tr><td class="green">DAY</td><td><span class="badge badge-micro">MICRO</span></td><td>61,064</td><td class="green">31 min</td><td>81 min</td><td>176 min</td></tr>
+        <tr><td class="red">NIGHT</td><td><span class="badge badge-micro">MICRO</span></td><td>38,626</td><td>38 min</td><td>112 min</td><td>203 min</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout red">
+    Night-time LOCAL P50 is 431 minutes vs Day 61 minutes &mdash; a <strong>7x penalty</strong>, far worse than the "2.9x" cited in the problem statement. Night incidents also outnumber day incidents 3:1 for LOCAL severity.
+  </div>
+
+  <!-- 3.4 Delivery Funnel -->
+  <h4 style="font-size:16px; font-weight:700; margin: 36px 0 14px; color:var(--text);">3.4 Communication Delivery Funnel (March 2026)</h4>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Template</th><th>Audience</th><th>Sent</th><th>Delivered</th><th>Read</th><th>Delivery %</th><th>Read %</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Detection</td><td>Customer</td><td>42,432</td><td>41,479</td><td>32,304</td><td class="green">92.9%</td><td class="highlight">77.9%</td></tr>
+        <tr><td>Inform Delay</td><td>Customer</td><td>5,022</td><td>4,923</td><td>3,925</td><td class="red">66.7%</td><td>79.7%</td></tr>
+        <tr><td>Resolved</td><td>Customer</td><td>70,045</td><td>68,542</td><td>50,633</td><td class="green">92.9%</td><td>73.9%</td></tr>
+        <tr><td>Detection Minor</td><td>Partner</td><td>2,935</td><td>2,966</td><td>2,300</td><td class="green">99.0%</td><td>77.6%</td></tr>
+        <tr><td>Detection Major</td><td>Partner</td><td>54</td><td>55</td><td>42</td><td class="green">93.2%</td><td>76.4%</td></tr>
+        <tr><td>Attention Minor</td><td>Partner</td><td class="red">13</td><td>13</td><td>12</td><td class="red">56.5%</td><td>92.3%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="key-finding">
+    <strong>Key findings:</strong> Partner reminder/attention messages are almost never sent (1-23 total in March). The escalation ladder is barely used. ~23% of partner detection messages are NOT read. "Inform Delay" messages have only 66.7% delivery &mdash; the worst rate.
+  </div>
+
+  <!-- 3.5 CT Funnel -->
+  <h4 style="font-size:16px; font-weight:700; margin: 36px 0 14px; color:var(--text);">3.5 CleverTap Event Funnel (March 2026)</h4>
+
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="pipe-label">Partner T0</div>
+      <div class="pipe-value">7,399</div>
+    </div>
+    <div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-step" style="border-color:var(--red);">
+      <div class="pipe-label">Partner T120</div>
+      <div class="pipe-value" style="color:var(--red);">23</div>
+    </div>
+    <div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-step">
+      <div class="pipe-label">Partner T240</div>
+      <div class="pipe-value">155</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Type</th><th>Checkpoint</th><th>Incidents Reached</th><th>Partners Reached</th><th>Events Fired</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Partner Comms</td><td>T0 (detection)</td><td>7,399</td><td>827</td><td>7,743</td></tr>
+        <tr><td>Partner Comms</td><td class="red">T120 (2hr reminder)</td><td class="red">23</td><td class="red">19</td><td class="red">25</td></tr>
+        <tr><td>Partner Comms</td><td>T240 (4hr attention)</td><td>155</td><td>113</td><td>163</td></tr>
+        <tr><td>Customer Comms</td><td>T0</td><td>396</td><td>170</td><td>64,393</td></tr>
+        <tr><td>Customer Comms</td><td>T60</td><td>1,618</td><td>493</td><td>50,821</td></tr>
+        <tr><td>Customer Comms</td><td>T240</td><td>2,573</td><td>572</td><td>30,538</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout red">
+    Of 7,399 incidents where partners were alerted at T0, only <strong>23 triggered the T120 reminder</strong> (0.3%). Either incidents resolve, or the system doesn't escalate. Given the long-tail recovery times, the escalation pipeline appears broken.
+  </div>
+
+  <!-- 3.6 Status -->
+  <h4 style="font-size:16px; font-weight:700; margin: 36px 0 14px; color:var(--text);">3.6 Incident Status (7 days)</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Status</th><th>Severity</th><th>Size</th><th>Count</th></tr></thead>
+      <tbody>
+        <tr><td class="green">CLOSED</td><td><span class="badge badge-micro">MICRO</span></td><td>TINY</td><td>95,549</td></tr>
+        <tr><td class="green">CLOSED</td><td><span class="badge badge-local">LOCAL</span></td><td>TINY</td><td>74,002</td></tr>
+        <tr><td class="red">ACTIVE</td><td><span class="badge badge-local">LOCAL</span></td><td>TINY</td><td class="red">8,622</td></tr>
+        <tr><td class="red">ACTIVE</td><td><span class="badge badge-micro">MICRO</span></td><td>TINY</td><td>2,034</td></tr>
+        <tr><td class="red">ACTIVE</td><td><span class="badge badge-major">MAJOR</span></td><td>SMALL</td><td class="red">70</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="key-finding">
+    <strong>8,622 LOCAL incidents are still ACTIVE</strong> &mdash; mostly tiny pockets that went LOCAL because they crossed 4 hours and were never resolved.
+  </div>
+</section>
+
+<!-- ═══════════════════ SECTION 4: PROBLEM BUCKETS ═══════════════════ -->
+<section>
+  <div class="section-label">Section 4</div>
+  <div class="section-title">The Five Major Problem Buckets</div>
+  <div class="section-subtitle">Distinct categories of failure between detection and resolution, ranked by impact.</div>
+
+  <!-- Bucket 1 -->
+  <div class="bucket-card b1">
+    <div class="bucket-number">Bucket 1</div>
+    <h3>The "Tiny + Long" Black Hole <span class="badge badge-major" style="margin-left:8px; vertical-align:middle;">43% of all incidents</span></h3>
+
+    <div class="bucket-section-label what">What</div>
+    <p style="font-size:14px; color:var(--muted); line-height:1.7;">1-9 devices go down and stay down for 18+ hours on average. These are single-lane, few-household pockets.</p>
+
+    <div class="bucket-section-label why">Why it's hard</div>
+    <ul style="list-style:none; padding:0;">
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--amber);"></span>Too small for the partner to notice or prioritize</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--amber);"></span>Current alert says "devices are down" but doesn't explain the cause</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--amber);"></span>Often a single fiber joint, a power issue at one junction, or a corroded splitter</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--amber);"></span>Partner has 50+ similar micro-pockets &mdash; no way to triage</li>
+    </ul>
+
+    <div class="bucket-section-label evidence">Evidence</div>
+    <p style="font-size:14px; color:var(--muted); line-height:1.7;">82,624 incidents in 7 days. Avg duration 1,096 minutes. Classified LOCAL only because of duration, not size. Partner gets an alert but has zero diagnostic information to act on.</p>
+
+    <div class="core-gap"><span>Core gap:</span> No root cause + no priority signal = partner ignores it.</div>
+  </div>
+
+  <!-- Bucket 2 -->
+  <div class="bucket-card b2">
+    <div class="bucket-number">Bucket 2</div>
+    <h3>Night-time Resolution Collapse <span class="badge" style="background:var(--red-bg);color:var(--red);margin-left:8px;vertical-align:middle;">7x penalty</span></h3>
+
+    <div class="bucket-section-label what">What</div>
+    <p style="font-size:14px; color:var(--muted); line-height:1.7;">Night LOCAL incidents take 431 min P50 vs 61 min during the day. Night incidents outnumber day 3:1 for LOCAL severity.</p>
+
+    <div class="bucket-section-label why">Why it's hard</div>
+    <ul style="list-style:none; padding:0;">
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--amber);"></span>Partners deprioritize Wiom at night, especially if serving multiple ISPs</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--amber);"></span>No technician availability after hours for many small partners</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--amber);"></span>No mechanism to auto-escalate or route to alternate resolution paths</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--amber);"></span>Current comms window (10am-8pm) means ~28% of incidents get no customer communication</li>
+    </ul>
+
+    <div class="bucket-section-label evidence">Evidence</div>
+    <p style="font-size:14px; color:var(--muted); line-height:1.7;">62,782 night LOCAL incidents vs 21,847 day LOCAL. Night P50 is 7x worse. Night MAJOR P50 is 2x worse (61 vs 32 min).</p>
+
+    <div class="core-gap"><span>Core gap:</span> No differentiated handling for night-time. Same alerts, same grace windows, same expectations &mdash; despite fundamentally different partner capacity.</div>
+  </div>
+
+  <!-- Bucket 3 -->
+  <div class="bucket-card b3">
+    <div class="bucket-number">Bucket 3</div>
+    <h3>Partner Escalation Ladder is Dead <span class="badge" style="background:var(--purple-bg);color:var(--purple);margin-left:8px;vertical-align:middle;">0.3% trigger rate</span></h3>
+
+    <div class="bucket-section-label what">What</div>
+    <p style="font-size:14px; color:var(--muted); line-height:1.7;">The escalation system (T0 &rarr; T120 &rarr; T240) exists but barely fires. Of 7,399 T0 partner alerts, only 23 triggered T120 reminders.</p>
+
+    <div class="bucket-section-label why">Why it's hard</div>
+    <ul style="list-style:none; padding:0;">
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--purple);"></span>Reminder and attention templates have near-zero volume</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--purple);"></span>"Attention Minor" messages have 56.5% delivery rate &mdash; half don't even arrive</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--purple);"></span>Partners read 77% of detection alerts but there's no feedback on whether they acted</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--purple);"></span>No ACK tracking visible in the data &mdash; the system can't tell if a partner saw vs ignored</li>
+    </ul>
+
+    <div class="bucket-section-label evidence">Evidence</div>
+    <p style="font-size:14px; color:var(--muted); line-height:1.7;">Partner reminder messages in March: 1-23 total. Meanwhile, 8,622 LOCAL incidents sit ACTIVE. The funnel leaks massively between "partner alerted" and "partner acts."</p>
+
+    <div class="core-gap"><span>Core gap:</span> Alert &ne; Action. The system notifies but doesn't track engagement, doesn't escalate effectively, and doesn't provide diagnostic intelligence to motivate action.</div>
+  </div>
+
+  <!-- Bucket 4 -->
+  <div class="bucket-card b4">
+    <div class="bucket-number">Bucket 4</div>
+    <h3>Root Cause Blindness &mdash; Partners Don't Know WHY</h3>
+
+    <div class="bucket-section-label what">What</div>
+    <p style="font-size:14px; color:var(--muted); line-height:1.7;">Partners receive a generic "X devices are down" alert. They don't know if it's a fiber cut, OLT failure, ISP backbone issue, or power outage &mdash; each requiring completely different actions.</p>
+
+    <div class="bucket-section-label why">Why it's hard</div>
+    <ul style="list-style:none; padding:0;">
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--accent);"></span><strong style="color:var(--text)">Fiber cut</strong> &rarr; dispatch technician to check physical cable</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--accent);"></span><strong style="color:var(--text)">OLT failure</strong> &rarr; call ISP NOC with specific OLT ID</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--accent);"></span><strong style="color:var(--text)">ISP backbone</strong> &rarr; nothing the partner can do; needs ISP-level escalation</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--accent);"></span><strong style="color:var(--text)">Power outage</strong> &rarr; check DG set or wait for power restoration</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--accent);"></span>Wrong action wastes time (e.g., restarting devices during a fiber cut)</li>
+    </ul>
+
+    <div class="bucket-section-label" style="color:var(--accent);">Available signals not being used</div>
+    <ul style="list-style:none; padding:0;">
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--accent);"></span>Optical power readings (fiber cut vs OLT vs backbone)</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--accent);"></span>Affected device topology (single OLT port vs entire OLT vs multi-partner)</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--accent);"></span>Ping loss patterns (gradual degradation vs cliff-drop)</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--accent);"></span>Historical patterns at that location</li>
+    </ul>
+
+    <div class="core-gap"><span>Core gap:</span> Telemetry data exists but isn't translated into actionable root cause diagnosis for the partner.</div>
+  </div>
+
+  <!-- Bucket 5 -->
+  <div class="bucket-card b5">
+    <div class="bucket-number">Bucket 5</div>
+    <h3>ISP-Level Faults Create Fragmented Chaos</h3>
+
+    <div class="bucket-section-label what">What</div>
+    <p style="font-size:14px; color:var(--muted); line-height:1.7;">When the fault is upstream (ISP backbone, POP failure, city-wide issue), each partner sees only their slice. 15 partners call the ISP independently for the same backbone fault.</p>
+
+    <div class="bucket-section-label why">Why it's hard</div>
+    <ul style="list-style:none; padding:0;">
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--green);"></span>Individual partners can't see the multi-partner correlation</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--green);"></span>V2.1 detects multi-partner patterns (LARGE &gt;100 devices) but only 91-131 such incidents in 7 days</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--green);"></span>No auto-escalation to ISP with aggregated evidence</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--green);"></span>Partners waste time trying to fix something they literally cannot fix</li>
+      <li style="padding-left:20px; position:relative; margin-bottom:6px; font-size:14px; color:var(--muted);"><span style="position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--green);"></span>ISP responds slower to fragmented individual complaints vs one coordinated escalation</li>
+    </ul>
+
+    <div class="bucket-section-label evidence">Evidence</div>
+    <p style="font-size:14px; color:var(--muted); line-height:1.7;">LARGE incidents are rare (131 closed in 7 days) but MAJOR severity with SMALL size bucket (524 incidents, 27hr avg duration) suggests many ISP-level faults get classified as collections of small incidents rather than one correlated major event.</p>
+
+    <div class="core-gap"><span>Core gap:</span> Correlation engine exists for detection but doesn't translate into coordinated ISP escalation or partner guidance ("this is ISP-side, don't touch anything").</div>
+  </div>
+</section>
+
+<!-- ═══════════════════ SECTION 5: CROSS-CUTTING ═══════════════════ -->
+<section>
+  <div class="section-label">Section 5</div>
+  <div class="section-title">Cross-Cutting Themes</div>
+
+  <div class="card">
+    <div class="theme-row">
+      <div class="theme-name">Detection works, action doesn't</div>
+      <div class="theme-desc">V2.1 detects in 5-15 min. But P50 resolution for LOCAL is 61 min (day) to 431 min (night).</div>
+    </div>
+    <div class="theme-row">
+      <div class="theme-name">Alert &ne; Intelligence</div>
+      <div class="theme-desc">Partner gets "X devices down" not "fiber cut at junction Y, call ISP NOC at number Z"</div>
+    </div>
+    <div class="theme-row">
+      <div class="theme-name">Escalation is cosmetic</div>
+      <div class="theme-desc">T120/T240 reminders barely fire. No real consequence for ignoring alerts.</div>
+    </div>
+    <div class="theme-row">
+      <div class="theme-name">Night-time is unaddressed</div>
+      <div class="theme-desc">7x resolution penalty. No alternate routing, no tighter SLAs, no backup paths.</div>
+    </div>
+    <div class="theme-row">
+      <div class="theme-name">Small pockets fester</div>
+      <div class="theme-desc">43% of incidents are tiny+long. Too small to notice, too many to track manually.</div>
+    </div>
+    <div class="theme-row">
+      <div class="theme-name">ISP faults look like partner faults</div>
+      <div class="theme-desc">No automated upstream correlation &rarr; wrong responder &rarr; wasted time.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ SECTION 6: OPPORTUNITY ═══════════════════ -->
+<section>
+  <div class="section-label">Section 6</div>
+  <div class="section-title">The Opportunity Sizing</div>
+  <div class="section-subtitle">What halving resolution times would mean for customers and the network.</div>
+
+  <h4 style="font-size:15px; font-weight:700; margin-bottom:16px; color:var(--text);">If we could halve resolution times:</h4>
+  <div class="opportunity-grid">
+    <div class="opp-card">
+      <div class="opp-metric">P50 LOCAL (Day)</div>
+      <span class="opp-current">61m</span><span class="opp-arrow">&rarr;</span><span class="opp-target">~30m</span>
+      <div class="opp-impact">44,700+ devices/day get internet back 30 min faster</div>
+    </div>
+    <div class="opp-card">
+      <div class="opp-metric">P50 LOCAL (Night)</div>
+      <span class="opp-current">431m</span><span class="opp-arrow">&rarr;</span><span class="opp-target">~215m</span>
+      <div class="opp-impact">50,000+ devices stop being dark for 7+ hours</div>
+    </div>
+    <div class="opp-card">
+      <div class="opp-metric">P95 Overall</div>
+      <span class="opp-current">~900m</span><span class="opp-arrow">&rarr;</span><span class="opp-target">~450m</span>
+      <div class="opp-impact">Long-tail outages cut from 16hr to 8hr</div>
+    </div>
+    <div class="opp-card">
+      <div class="opp-metric">Active LOCAL Incidents</div>
+      <span class="opp-current">8,622</span><span class="opp-arrow">&rarr;</span><span class="opp-target">&lt;2,000</span>
+      <div class="opp-impact">Chronic unresolved pockets cleared</div>
+    </div>
+  </div>
+
+  <h4 style="font-size:15px; font-weight:700; margin: 32px 0 12px; color:var(--text);">The 24,000 daily incidents break down as:</h4>
+  <div class="breakdown-bar">
+    <div class="breakdown-segment" style="width:53%; background:var(--purple);">53% MICRO</div>
+    <div class="breakdown-segment" style="width:43%; background:var(--amber);">43% LOCAL (Tiny+Long)</div>
+    <div class="breakdown-segment" style="width:4%; background:var(--red); font-size:10px;">4%</div>
+  </div>
+  <div class="breakdown-legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--purple);"></div>~53% MICRO &mdash; self-resolve or too small to act on (not the target)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--amber);"></div>~43% LOCAL driven by TINY+LONG &mdash; the biggest opportunity</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--red);"></div>~0.4% MAJOR + ~4% other LOCAL</div>
+  </div>
+
+  <div class="callout accent" style="margin-top:28px;">
+    The #1 lever is making <strong>TINY+LONG incidents actionable</strong> for partners through root cause diagnosis and guided next steps.
+  </div>
+</section>
+
+</div><!-- container -->
+
+<div class="footer">
+  <em>This document is for problem exploration only. No solutions proposed.</em><br>
+  Prompt Wars 3 &mdash; Outage Resolution TAT &middot; Data as of 2026-03-28
+</div>
+
+</body>
+</html>
