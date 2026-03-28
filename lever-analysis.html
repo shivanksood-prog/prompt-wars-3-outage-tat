@@ -458,11 +458,76 @@ Resolution TAT = <span class="ok">Time to Detect</span> + <strong>Time to Inform
 </div>
 </section>
 
+<!-- ═══════ NETWORK TOPOLOGY ═══════ -->
+<section>
+  <div class="sl">The Geo-Spatial Advantage</div>
+  <div class="st">We Have the Full Network Topology</div>
+  <div class="ss">ISP backbone &rarr; OLT &rarr; Splitter &rarr; Customer device. Every layer has lat/lng. This turns 20 blind alerts into one actionable map pin.</div>
+
+  <div class="card">
+    <h3>The Physical Network (How It Actually Works)</h3>
+    <pre style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);line-height:1.9;margin-top:10px;">
+ISP Backbone (fiber ring across city)
+  &darr;
+POP / OLT  (ISP-owned, serves multiple partners)
+  &darr;
+Splitter 1 &mdash;&mdash; Splitter 2 &mdash;&mdash; Splitter 3    <strong style="color:var(--accent);">&larr; Partner-owned, has lat/lng</strong>
+  &darr;              &darr;              &darr;
+[D1][D2][D3]    [D4][D5][D6]    [D7][D8]          <strong style="color:var(--accent);">&larr; Customer devices, have lat/lng</strong>
+ (homes)         (homes)         (homes)
+    </pre>
+    <p style="margin-top:14px;">When 3 devices on the same splitter go down &rarr; <strong style="color:var(--text);">it's that splitter or the fiber to it.</strong><br>
+    When all splitters under an OLT go down &rarr; <strong style="color:var(--text);">it's the OLT or ISP link.</strong><br>
+    When multiple OLTs across partners go down &rarr; <strong style="color:var(--text);">it's backbone/ISP-level.</strong></p>
+  </div>
+
+  <div class="sub" style="color:var(--accent);">Available Geo Data in Snowflake</div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Data</th><th>Table</th><th>Coverage</th><th>Key Fields</th></tr></thead>
+      <tbody>
+        <tr><td class="hi">Splitter Locations</td><td>T_SPLITTER</td><td class="g">178,121 splitters, 100% have lat/lng</td><td>IDENTIFIER, LONG_PARTNER_ID, LAT, LNG</td></tr>
+        <tr><td class="hi">Customer Device Locations</td><td>T_WG_CUSTOMER &rarr; T_ADDRESS</td><td class="g">252,730 devices with lat/lng (of 316K total = 80%)</td><td>DEVICE_ID, GOOGLE_ADDRESS_ID &rarr; LAT, LNG, ADDRESS, LOCALITY</td></tr>
+        <tr><td class="hi">Incident &rarr; Device Mapping</td><td>INCIDENT_IMPACTED_DEVICE</td><td class="g">Every incident has device list</td><td>INCIDENT_ID, DEVICE_ID, CREATED_AT, RECOVERY_AT</td></tr>
+        <tr><td class="hi">Partner &rarr; Splitter Mapping</td><td>T_SPLITTER.LONG_PARTNER_ID</td><td class="g">Direct FK</td><td>Partners have 2 to 1,232 splitters each</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kf pink">
+    <strong>The join chain is complete:</strong> Incident &rarr; Device &rarr; Customer Address (lat/lng) &rarr; nearest Splitter (lat/lng) &rarr; Partner. We can pinpoint WHERE every outage is happening on a map, cluster devices by splitter, and tell the partner the <strong>exact physical location</strong> to go fix.
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>What This Unlocks (Not Possible Without Geo)</h3>
+    <ul>
+      <li><strong style="color:var(--text)">Splitter-level clustering:</strong> "3 devices down on Splitter #247 at 28.576°N, 77.220°E near Pipal Wali Gali" &mdash; partner knows exactly where to send the technician</li>
+      <li><strong style="color:var(--text)">Fault localization:</strong> If devices on Splitter A are down but Splitter B (same OLT) is fine &rarr; fiber between OLT and Splitter A is the fault. If both A+B are down &rarr; OLT-level issue</li>
+      <li><strong style="color:var(--text)">Map-based triage:</strong> Instead of 20 text alerts, partner sees a live map with red/amber/green pins. Cluster of red pins = one dispatch, not 8 separate alerts</li>
+      <li><strong style="color:var(--text)">Route optimization:</strong> If partner has 5 splitter-level outages, show the optimal route to visit them (nearest-first or highest-impact-first)</li>
+      <li><strong style="color:var(--text)">Pattern detection:</strong> Same splitter lat/lng having weekly outages = infra decay at that junction. Flag for replacement, not repeated repair.</li>
+    </ul>
+  </div>
+
+  <div class="sub" style="color:var(--accent);">Concrete Example: Today vs With Geo Intelligence</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0;">
+    <div style="background:var(--red-bg);border:1px solid rgba(224,30,0,.2);border-radius:10px;padding:18px;">
+      <div style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Today's Alert</div>
+      <p style="font-size:13px;color:var(--text);line-height:1.7;">"3 devices are down in your network. Incident #45231. Please resolve."</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:8px;">Partner has 200+ devices. Which 3? Where? Why? What to do?</p>
+    </div>
+    <div style="background:var(--green-bg);border:1px solid rgba(0,128,67,.2);border-radius:10px;padding:18px;">
+      <div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">With Geo Intelligence</div>
+      <p style="font-size:13px;color:var(--text);line-height:1.7;">"Fiber issue at Splitter #247 near Pipal Wali Gali, Sector 15 (28.576°N, 77.220°E). 3 homes affected. Dispatch technician to check fiber joint at this location. <a href="#" style="color:var(--green);">Open in Maps</a>"</p>
+    </div>
+  </div>
+</section>
+
 <!-- ═══════ FOUR PROJECTS ═══════ -->
 <section>
   <div class="sl">Workstream Split</div>
   <div class="st">Four Parallel Projects</div>
-  <div class="ss">Each project maps to specific levers, can be built independently by one person + Claude Code, and stitches back via shared incident data model.</div>
+  <div class="ss">Each project maps to specific levers, can be built independently by one person + Claude Code, and stitches back via shared incident data model. All projects use the geo-topology layer.</div>
 
   <div class="proj-grid">
     <!-- PROJECT 1 -->
@@ -474,8 +539,9 @@ Resolution TAT = <span class="ok">Time to Detect</span> + <strong>Time to Inform
       <ul>
         <li><strong style="color:var(--text)">Build drift-detection logic</strong> &mdash; flag MICROs still active at 60/90/120 min that historically don't self-resolve</li>
         <li><strong style="color:var(--text)">Design early partner alert</strong> for drifting incidents before they become LOCAL</li>
-        <li><strong style="color:var(--text)">Build severity upgrade predictor</strong> &mdash; which MICROs will drift? (features: device count trend, OLT history, time-of-day, partner profile)</li>
-        <li><strong style="color:var(--text)">False positive filter</strong> &mdash; use ticket/call overlay to identify detection artifacts (97% of TINY have zero customer signal)</li>
+        <li><strong style="color:var(--text)">Build severity upgrade predictor</strong> &mdash; which MICROs will drift? (features: device count trend, splitter history, time-of-day, partner profile, geo-cluster density)</li>
+        <li><strong style="color:var(--text)">Splitter-level grouping</strong> &mdash; map drifting devices to their nearest splitter lat/lng. Same splitter = one alert, not 3 separate ones</li>
+        <li><strong style="color:var(--text)">False positive filter</strong> &mdash; use ticket/call overlay + geo proximity to identify detection artifacts vs real outages</li>
       </ul>
       <p style="margin-top:12px;"><strong style="color:var(--red)">Impact:</strong> If 30% of drifting MICROs get early signal &rarr; ~12,500 incidents/week resolve 16hr faster</p>
     </div>
@@ -487,10 +553,10 @@ Resolution TAT = <span class="ok">Time to Detect</span> + <strong>Time to Inform
       <p><strong style="color:var(--text)">Levers:</strong> Intelligent Payload, Verification</p>
       <p><strong style="color:var(--text)">Target:</strong> All alerted incidents &mdash; transform "X devices down" into "WHY + WHAT TO DO"</p>
       <ul>
-        <li><strong style="color:var(--text)">Root cause classifier</strong> &mdash; fiber cut / OLT / ISP backbone / power / device-level, using optical power, topology, ping patterns</li>
-        <li><strong style="color:var(--text)">Action generation engine</strong> &mdash; specific next step per root cause (dispatch tech / call ISP NOC / wait / restart)</li>
-        <li><strong style="color:var(--text)">ISP correlation detector</strong> &mdash; multi-partner same-POP pattern &rarr; "ISP issue, we're escalating, do nothing"</li>
-        <li><strong style="color:var(--text)">Verification intelligence</strong> &mdash; recurrence detection, false positive flagging, "your fix worked" confirmation</li>
+        <li><strong style="color:var(--text)">Geo-topology RCA</strong> &mdash; cluster down devices by splitter lat/lng. Same splitter = local fiber. All splitters under OLT = OLT/ISP. Multi-partner same area = backbone.</li>
+        <li><strong style="color:var(--text)">Location-aware action</strong> &mdash; "Fiber issue at Splitter #247, Pipal Wali Gali (28.576°N, 77.220°E). Dispatch technician." with <strong style="color:var(--text)">Google Maps deep link</strong></li>
+        <li><strong style="color:var(--text)">ISP correlation detector</strong> &mdash; multi-partner same-POP geo-cluster &rarr; "ISP issue, we're escalating, do nothing"</li>
+        <li><strong style="color:var(--text)">Recurrence heatmap</strong> &mdash; same splitter/junction recurring weekly? Flag for infra replacement, not repeated repair</li>
       </ul>
       <p style="margin-top:12px;"><strong style="color:var(--amber)">Impact:</strong> RCA accuracy &gt;80%. Partners act on first alert instead of waiting/guessing. Target P50 LOCAL SMALL from 133m to &lt;60m.</p>
     </div>
@@ -504,7 +570,7 @@ Resolution TAT = <span class="ok">Time to Detect</span> + <strong>Time to Inform
       <ul>
         <li><strong style="color:var(--text)">Fix T120/T240 pipeline</strong> &mdash; currently 0.3% fire rate. Make it 100% for unresolved incidents.</li>
         <li><strong style="color:var(--text)">Night-time differentiated rules</strong> &mdash; tighter grace (30 min instead of 60), auto-escalation if no ACK</li>
-        <li><strong style="color:var(--text)">Morning burst queue</strong> &mdash; prioritized action list for overnight incidents when partners wake up</li>
+        <li><strong style="color:var(--text)">Morning burst queue</strong> &mdash; geo-clustered overnight incidents as a route-optimized map: "Visit these 4 splitter locations in this order"</li>
         <li><strong style="color:var(--text)">Partner ACK tracking</strong> &mdash; seen vs ignored vs acted. Dynamic grace based on partner response history.</li>
         <li><strong style="color:var(--text)">Auto-ISP escalation</strong> for correlated multi-partner outages with evidence package</li>
       </ul>
@@ -519,9 +585,9 @@ Resolution TAT = <span class="ok">Time to Detect</span> + <strong>Time to Inform
       <p><strong style="color:var(--text)">Target:</strong> 422 chronic partners generating 69% of incidents</p>
       <ul>
         <li><strong style="color:var(--text)">Partner scorecard</strong> &mdash; P50 recovery, ACK rate, grace resolution %, night penalty, vs city average</li>
-        <li><strong style="color:var(--text)">Incident bundling &amp; triage</strong> &mdash; group partner's 20 daily incidents by root cause cluster, show prioritized queue</li>
+        <li><strong style="color:var(--text)">Map-based triage</strong> &mdash; replace 20 text alerts with a live map: red/amber/green pins per splitter. Cluster of red = one dispatch, not 8 alerts</li>
         <li><strong style="color:var(--text)">Tiered treatment engine</strong> &mdash; fast partners (P50 &lt;60m) get standard flow; slow partners (P50 &gt;4hr) get shorter grace + earlier escalation</li>
-        <li><strong style="color:var(--text)">Chronic pattern detection</strong> &mdash; same OLT/location recurring &rarr; flag for infrastructure investment, not just repeated alerts</li>
+        <li><strong style="color:var(--text)">Geo-chronic detection</strong> &mdash; same splitter lat/lng recurring weekly? Heatmap of partner's worst junctions &rarr; flag for infra investment</li>
         <li><strong style="color:var(--text)">Best-practice transfer</strong> &mdash; what do 111 fast partners do differently? Codify and push to slow partners.</li>
       </ul>
       <p style="margin-top:12px;"><strong style="color:var(--purple)">Impact:</strong> Move the median partner P50 from 388m to &lt;120m. Reduce chronic partner incident volume by identifying infra issues.</p>
