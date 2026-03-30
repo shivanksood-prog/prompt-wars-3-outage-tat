@@ -527,7 +527,7 @@ MAP_HTML = """<!DOCTYPE html>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-:root{--bg:#FAF9FC;--card:#FFF;--border:#D7D3E0;--text:#161021;--muted:#665E75;--accent:#D9008D;--green:#008043;--green-bg:#E1FAED;--red:#E01E00;--red-bg:#FFE9E5;--amber:#FF8000;--amber-bg:#FFE6CC;--neutral100:#F1EDF7;--neutral800:#352D42;--wa-green:#25D366;}
+:root{--bg:#FAF9FC;--card:#FFF;--border:#D7D3E0;--text:#161021;--muted:#665E75;--accent:#D9008D;--green:#008043;--green-bg:#E1FAED;--red:#E01E00;--red-bg:#FFE9E5;--amber:#FF8000;--amber-bg:#FFE6CC;--neutral100:#F1EDF7;--neutral800:#352D42;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
 #map{height:45vh;width:100%;border-bottom:2px solid var(--accent);}
@@ -554,23 +554,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webk
 .action-item.info{background:var(--neutral100);}.action-item.complaint{background:var(--green-bg);}
 .action-item .ai{font-size:14px;flex-shrink:0;}.action-item strong{color:var(--text);}
 
-/* WhatsApp send section */
-.wa-section{padding:14px 16px;border-top:1px solid var(--border);background:var(--card);}
-.wa-section h3{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px;}
-.wa-send-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
-.wa-input{flex:1;min-width:180px;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;outline:none;transition:border .15s;}
-.wa-input:focus{border-color:var(--accent);}
-.wa-btn{padding:10px 20px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;display:flex;align-items:center;gap:6px;transition:opacity .15s;white-space:nowrap;}
-.wa-btn:hover{opacity:.85;}
-.wa-btn-send{background:var(--wa-green);color:white;}
-.wa-btn-copy{background:var(--neutral100);color:var(--muted);border:1px solid var(--border);}
-.wa-lang-row{display:flex;gap:5px;margin-bottom:8px;}
-.wa-lang{padding:5px 14px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--muted);}
-.wa-lang.active{background:var(--accent);color:white;border-color:var(--accent);}
-.wa-preview{padding:12px;background:var(--neutral100);border-radius:8px;white-space:pre-wrap;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;max-height:200px;overflow-y:auto;}
-.wa-status{margin-top:8px;padding:8px 12px;border-radius:6px;font-size:11px;font-weight:600;display:none;}
-.wa-status.ok{display:block;background:var(--green-bg);color:var(--green);}
-.wa-status.err{display:block;background:var(--red-bg);color:var(--red);}
+/* Message preview */
+.msg-section{padding:14px 16px;border-top:1px solid var(--border);background:var(--card);}
+.msg-section h3{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px;}
+.msg-tabs{display:flex;gap:5px;margin-bottom:8px;}
+.msg-tab{padding:5px 14px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--muted);}
+.msg-tab.active{background:var(--accent);color:white;border-color:var(--accent);}
+.msg-preview{padding:12px;background:var(--neutral100);border-radius:8px;white-space:pre-wrap;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;max-height:200px;overflow-y:auto;}
 
 /* Leaflet popup */
 .leaflet-popup-content{font-family:'Inter',sans-serif;font-size:12px;line-height:1.5;max-width:280px;}
@@ -586,10 +576,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webk
   .sum-card{padding:5px 8px;font-size:10px;}
   .action-panel{padding:8px 12px;}
   .action-item{padding:6px 10px;font-size:10px;}
-  .wa-section{padding:10px 12px;}
-  .wa-send-row{flex-direction:column;}
-  .wa-input{min-width:auto;width:100%;}
-  .wa-btn{justify-content:center;}
+  .msg-section{padding:10px 12px;}
   .leaflet-popup-content{font-size:11px;max-width:240px;}
 }
 </style>
@@ -606,19 +593,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webk
 <div class="summary" id="summary"></div>
 <div class="action-panel" id="action-panel"></div>
 
-<div class="wa-section">
-  <h3>Send Alert on WhatsApp</h3>
-  <div class="wa-send-row">
-    <input type="tel" id="wa-phone" class="wa-input" placeholder="Enter mobile number (e.g. 9876543210)" maxlength="10" pattern="[0-9]{10}">
-    <button class="wa-btn wa-btn-send" onclick="sendWhatsApp()">📱 Send on WhatsApp</button>
-    <button class="wa-btn wa-btn-copy" onclick="copyMsg()">📋 Copy Message</button>
+<div class="msg-section">
+  <h3>Partner Alert Message</h3>
+  <div class="msg-tabs">
+    <div class="msg-tab active" onclick="showMsg('en')">English</div>
+    <div class="msg-tab" onclick="showMsg('hi')">Hindi</div>
   </div>
-  <div class="wa-lang-row">
-    <div class="wa-lang active" onclick="setWaLang('en')">English</div>
-    <div class="wa-lang" onclick="setWaLang('hi')">Hindi</div>
-  </div>
-  <div class="wa-preview" id="wa-preview"></div>
-  <div class="wa-status" id="wa-status"></div>
+  <div class="msg-preview" id="msg-en"></div>
+  <div class="msg-preview" id="msg-hi" style="display:none;"></div>
 </div>
 
 <script>
@@ -642,7 +624,7 @@ const TAG_BG = {
   CUSTOMER_ISSUE: '#F1EDF7', CUSTOMER_POWER: '#F1EDF7'
 };
 
-let msgEn = '', msgHi = '', currentWaLang = 'en';
+let msgEn = '', msgHi = '';
 
 function circleIcon(color, count) {
   return L.divIcon({
@@ -659,7 +641,8 @@ async function load() {
     `${data.incidents.length} active outage(s) in your network`;
   msgEn = data.message_en;
   msgHi = data.message_hi;
-  document.getElementById('wa-preview').textContent = msgEn;
+  document.getElementById('msg-en').textContent = msgEn;
+  document.getElementById('msg-hi').textContent = msgHi;
 
   const cls_count = {};
   let total_devices = 0, total_tickets = 0;
@@ -748,41 +731,12 @@ async function load() {
   if (bounds.length) map.fitBounds(bounds, {padding: [30, 30], maxZoom: 15});
 }
 
-function setWaLang(lang) {
-  currentWaLang = lang;
-  document.getElementById('wa-preview').textContent = lang === 'en' ? msgEn : msgHi;
-  document.querySelectorAll('.wa-lang').forEach(t =>
+function showMsg(lang) {
+  document.getElementById('msg-en').style.display = lang==='en' ? 'block' : 'none';
+  document.getElementById('msg-hi').style.display = lang==='hi' ? 'block' : 'none';
+  document.querySelectorAll('.msg-tab').forEach(t =>
     t.classList.toggle('active', t.textContent.toLowerCase().includes(lang==='en'?'eng':'hin'))
   );
-}
-
-function sendWhatsApp() {
-  const phone = document.getElementById('wa-phone').value.replace(/\\D/g, '');
-  const status = document.getElementById('wa-status');
-  if (!phone || phone.length < 10) {
-    status.className = 'wa-status err';
-    status.textContent = 'Please enter a valid 10-digit mobile number';
-    return;
-  }
-  const fullPhone = '91' + phone.slice(-10);
-  const msg = currentWaLang === 'en' ? msgEn : msgHi;
-  const waUrl = `https://api.whatsapp.com/send?phone=${fullPhone}&text=${encodeURIComponent(msg)}`;
-  window.open(waUrl, '_blank');
-  status.className = 'wa-status ok';
-  status.textContent = 'WhatsApp opened — confirm send in the WhatsApp window.';
-}
-
-function copyMsg() {
-  const msg = currentWaLang === 'en' ? msgEn : msgHi;
-  const status = document.getElementById('wa-status');
-  navigator.clipboard.writeText(msg).then(() => {
-    status.className = 'wa-status ok';
-    status.textContent = 'Message copied to clipboard!';
-    setTimeout(() => { status.className = 'wa-status'; }, 2000);
-  }).catch(() => {
-    status.className = 'wa-status err';
-    status.textContent = 'Copy failed — select and copy manually from preview above.';
-  });
 }
 
 load();
