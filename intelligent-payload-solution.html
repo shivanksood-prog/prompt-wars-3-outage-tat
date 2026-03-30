@@ -394,6 +394,162 @@ pre.topo strong{color:var(--accent);}pre.topo .g{color:var(--green);}pre.topo .r
 
 </div>
 
+<!-- ═══ COMPLAINT OVERLAY ═══ -->
+<section>
+  <div class="sl">The Hidden Half</div>
+  <div class="st">52% of "Internet Supply Down" Complaints Have No Matching Outage</div>
+  <div class="ss">Customer complaint data reveals a massive blind spot in detection. These are real customers calling CS about real internet problems that V2.1 doesn't see.</div>
+
+  <div class="card">
+    <h3>The Numbers (Last 7 Days, "Internet Supply Down" Tickets Only)</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Status</th><th>Tickets</th><th>Partners</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="g">Detected (ticket + outage match)</td><td>5,992</td><td>811</td><td>V2.1 saw it. Customer also complained.</td></tr>
+          <tr><td class="r">Undetected (ticket but NO outage)</td><td class="r">6,509</td><td class="r">832</td><td class="r">Customer says internet is down. V2.1 didn't detect it.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="kf red">
+      <strong>6,509 "Internet Supply Down" tickets in 7 days have no matching outage incident.</strong> Of these, 6,273 are from customers with ACTIVE plans — so they should be monitored. This isn't expired-plan noise. The detection system has a 52% blind spot.
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Plan Status of Undetected Complaints</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Outage Status</th><th>Plan Status</th><th>Tickets</th></tr></thead>
+        <tbody>
+          <tr><td class="g">Detected</td><td>Active Plan</td><td>5,666</td></tr>
+          <tr><td class="g">Detected</td><td>Expired Plan</td><td>348</td></tr>
+          <tr><td class="r">Undetected</td><td class="r">Active Plan</td><td class="r">6,273</td></tr>
+          <tr><td>Undetected</td><td>Expired Plan</td><td>246</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="kf amber">
+      <strong>96% of undetected complaints are from active-plan customers.</strong> These aren't expired-plan edge cases. The ping-based detection system is missing real outages.
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>When Are Outages Undetected? (Hourly Pattern)</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Hour (IST)</th><th>Detected</th><th>Undetected</th><th>Undetected %</th><th>Interpretation</th></tr></thead>
+        <tbody>
+          <tr><td>7 AM</td><td>87</td><td class="r">106</td><td class="r">54.9%</td><td class="r">Morning surge — customers wake up, internet isn't working</td></tr>
+          <tr><td>8 AM</td><td>352</td><td class="r">480</td><td class="r">57.7%</td><td class="r">Peak undetected window</td></tr>
+          <tr><td>9 AM</td><td>524</td><td class="r">642</td><td class="r">55.1%</td><td></td></tr>
+          <tr><td>10 AM</td><td>528</td><td class="r">650</td><td class="r">55.2%</td><td class="r">Worst absolute volume</td></tr>
+          <tr><td>11 AM</td><td>426</td><td class="r">640</td><td class="r">60.0%</td><td class="r">Peak undetected ratio</td></tr>
+          <tr><td>12 PM</td><td>446</td><td>528</td><td>54.2%</td><td></td></tr>
+          <tr><td>4 PM</td><td>259</td><td class="r">403</td><td class="r">60.9%</td><td class="r">Highest undetected % of day</td></tr>
+          <tr><td>7 PM</td><td>433</td><td>341</td><td class="g">44.1%</td><td>Evening: detection catches up</td></tr>
+          <tr><td>9 PM</td><td>363</td><td>203</td><td class="g">35.9%</td><td>Night: fewer complaints, better detection ratio</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="kf pink">
+      <strong>During business hours (8 AM - 5 PM), 55-61% of supply-down complaints are undetected.</strong> Detection improves at night (30-35% undetected) — likely because night outages are bigger and more obvious to the ping system. <strong>Daytime has more small, localized outages that slip through.</strong>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Geo Clustering: Are Undetected Complaints Clustered?</h3>
+    <p>Excluding the mega-partner (274877906948 with 100+ undetected/day spread across 10°), real partners show:</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Partner</th><th>Day</th><th>Undetected Tickets</th><th>Geo Spread</th><th>Cluster Type</th></tr></thead>
+        <tbody>
+          <tr><td>...71527</td><td>Mar 26</td><td>24</td><td>0.007° lat, 0.012° lng</td><td class="a">MEDIUM (~500m-1km)</td></tr>
+          <tr><td>...77690</td><td>Mar 24</td><td>16</td><td>0.008° lat, 0.006° lng</td><td class="a">MEDIUM (~500m)</td></tr>
+          <tr><td>...17805</td><td>Mar 30</td><td>14</td><td>0.003° lat, 0.007° lng</td><td class="g">TIGHT (&lt;500m)</td></tr>
+          <tr><td>...46849</td><td>Mar 23</td><td>13</td><td>0.006° lat, 0.022° lng</td><td class="a">MEDIUM</td></tr>
+          <tr><td>...96768</td><td>Mar 27</td><td>13</td><td>0.008° lat, 0.012° lng</td><td class="a">MEDIUM</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="kf green">
+      <strong>Yes — undetected complaints cluster geographically.</strong> Multiple partners show 10-24 undetected tickets clustered within 500m-1km on the same day. These are likely real localized outages that ping monitoring isn't catching. <strong>Complaint geo-clustering is a second detection signal.</strong>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>What Complaint Overlay Adds to Intelligent Payload</h3>
+    <ul>
+      <li><strong style="color:var(--text)">Second detection layer:</strong> When 3+ customers in the same geo-cluster raise "supply down" tickets within 2 hours — flag as probable outage even if V2.1 didn't detect it</li>
+      <li><strong style="color:var(--text)">Severity amplifier:</strong> An outage WITH customer complaints is more urgent than one without. Bump priority when complaint overlay matches.</li>
+      <li><strong style="color:var(--text)">False positive filter:</strong> If V2.1 detects an outage but zero customers complain AND no tickets match — may be a detection artifact. Lower priority.</li>
+      <li><strong style="color:var(--text)">Complaint-driven pins on map:</strong> Orange pins for "customers complaining here but no outage detected" — partner should investigate this location too.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══ KNOWLEDGE GAPS ═══ -->
+<section>
+  <div class="sl">What We Need From You</div>
+  <div class="st">Ground Knowledge Required to Make This Perfect</div>
+  <div class="ss">These are questions only someone with operational/ground knowledge can answer. Data alone won't tell us.</div>
+
+  <div class="step s1">
+    <div class="sn">Network Topology</div>
+    <h4>How does the physical network actually work?</h4>
+    <ul>
+      <li><strong style="color:var(--text)">OLT ownership:</strong> You said OLTs are partner-level. Does each partner have exactly 1 OLT at their POP? Or can large partners have multiple OLTs? Is OLT info stored anywhere in Snowflake (we couldn't find it)?</li>
+      <li><strong style="color:var(--text)">Splitter topology:</strong> Is there a strict hierarchy (OLT → trunk fiber → splitter → customer)? Or can splitters be daisy-chained (splitter → splitter → customer)?</li>
+      <li><strong style="color:var(--text)">Device-to-splitter mapping:</strong> Is there a direct FK anywhere (device → splitter_id)? Or is HAVERSINE proximity our only option? 436 partners have 0 splitters mapped — is that a data gap or do those partners use a different infra model?</li>
+      <li><strong style="color:var(--text)">ISP backhaul:</strong> How does ISP fiber reach the partner's OLT? Is it a dedicated fiber or shared POP? Can we identify which ISP serves which partner?</li>
+    </ul>
+  </div>
+
+  <div class="step s2">
+    <div class="sn">Cross-Partner Correlation</div>
+    <h4>How do we detect ISP-level vs partner-level faults?</h4>
+    <ul>
+      <li><strong style="color:var(--text)">ISP-partner mapping:</strong> Which ISP(s) serve which partner? Is this in any table? Knowing this lets us correlate: "3 partners on ISP-X all went down → ISP issue"</li>
+      <li><strong style="color:var(--text)">Geographic POP sharing:</strong> Do multiple partners share an ISP POP in the same area? If so, is there a mapping of partner → POP location?</li>
+      <li><strong style="color:var(--text)">The mega-partner (ID 274877906948):</strong> This single partner has 100-195 undetected supply-down tickets/day spread across 10° lat/lng (entire North India?). Is this a master/aggregator account? Should we exclude it?</li>
+    </ul>
+  </div>
+
+  <div class="step s3">
+    <div class="sn">Detection Blind Spots</div>
+    <h4>Why are 52% of supply-down complaints undetected?</h4>
+    <ul>
+      <li><strong style="color:var(--text)">Ping monitoring threshold:</strong> V2.1 needs 3 consecutive failed pings + 15 min. Could intermittent/partial outages (customer has 50% packet loss but not 100%) slip through? Does the customer perceive "down" even at partial loss?</li>
+      <li><strong style="color:var(--text)">Authentication-based outages:</strong> If ISP authentication fails but ping is technically alive (device responds to ICMP but can't pass traffic) — would V2.1 miss this?</li>
+      <li><strong style="color:var(--text)">Customer device vs WG device:</strong> Customer complains about WiFi being down. Is the WG router still pinging but the customer's WiFi router (behind it) is the issue? How common is this?</li>
+      <li><strong style="color:var(--text)">Speed/quality issues classified as "supply down":</strong> Customer has 2 Mbps instead of 50 Mbps. They say "internet down." But device is pinging. How many of the 6,509 undetected tickets are actually quality issues?</li>
+    </ul>
+  </div>
+
+  <div class="step s4">
+    <div class="sn">Geo Signal Interpretation</div>
+    <h4>How should we read geographic patterns?</h4>
+    <ul>
+      <li><strong style="color:var(--text)">Typical splitter coverage radius:</strong> How far (in meters) does a typical splitter serve? Is 500m a reasonable clustering threshold?</li>
+      <li><strong style="color:var(--text)">Fiber trunk paths:</strong> When we see devices go down in a line (not a circle), that suggests a trunk fiber cut. Is there any data on fiber routing paths?</li>
+      <li><strong style="color:var(--text)">Power grid correlation:</strong> In areas with frequent power cuts, many devices go down simultaneously but it's not a fiber/OLT issue. Is there any power grid data (DG set status, area power outage feeds) we could integrate?</li>
+      <li><strong style="color:var(--text)">Urban vs rural patterns:</strong> Does the same geo-spread mean different things in dense urban (Delhi) vs semi-rural areas? What's the typical splitter density in each?</li>
+    </ul>
+  </div>
+
+  <div class="step s5">
+    <div class="sn">Frontend & Partner Behavior</div>
+    <h4>How do partners actually work?</h4>
+    <ul>
+      <li><strong style="color:var(--text)">Partner's daily workflow:</strong> When a partner gets a WhatsApp alert, what do they physically do? Do they dispatch a technician? Do they go themselves? Do they have a control room?</li>
+      <li><strong style="color:var(--text)">Technician communication:</strong> How does the partner tell their field tech where to go today? Phone call? WhatsApp group? Our map link needs to fit this existing flow.</li>
+      <li><strong style="color:var(--text)">Language/literacy:</strong> Hindi/Hinglish for most? Any regional language needs? How technical can the messages be? Do partners understand "OLT" and "splitter" or do they call them something else?</li>
+      <li><strong style="color:var(--text)">Multi-ISP partners:</strong> Partners serving both Wiom and other ISPs — do they have separate OLTs per ISP? Or shared infrastructure? This affects diagnosis.</li>
+      <li><strong style="color:var(--text)">What phone/browser do partners use?</strong> Android version? WhatsApp default browser? This affects the map view. Leaflet works on most, but low-end phones may struggle with heavy maps.</li>
+    </ul>
+  </div>
+</section>
+
 <div class="footer">
   Prompt Wars 3 &mdash; Intelligent Payload Solution v2 &middot; 2026-03-30
 </div>
