@@ -4,15 +4,13 @@ import os
 import json
 import time
 import threading
-import pickle
 from datetime import datetime
-from pathlib import Path
 
 from fastapi import FastAPI, Request, Query
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-from engine.pipeline import run_pipeline
+from engine.pipeline import run_pipeline, run_pipeline_from_db
 from engine.classifier import ClassifiedIncident
 from engine.consolidator import PartnerDigest
 
@@ -21,48 +19,28 @@ app = FastAPI(title="Outage Intelligent Payload")
 # ── Base URL: set via env var, or auto-detected from first request ──
 _base_url: str = os.environ.get("BASE_URL", "")
 
-# ── Disk cache for instant startup ──
-CACHE_FILE = Path(__file__).parent / ".cache.pkl"
-
 # ── In-memory cache ──
 _cache: dict = {"partners": {}, "incidents": [], "stats": {}, "last_refresh": None}
 _lock = threading.Lock()
 
 
-def _save_cache():
-    """Persist cache to disk so next startup is instant."""
-    try:
-        with open(CACHE_FILE, "wb") as f:
-            pickle.dump(_cache, f)
-    except Exception as e:
-        print(f"[WARN] Cache save failed: {e}")
-
-
-def _load_cache():
-    """Load cache from disk if available."""
+def _load_from_db():
+    """Try loading from SQLite — instant, no Metabase needed."""
     global _cache
-    if CACHE_FILE.exists():
-        try:
-            with open(CACHE_FILE, "rb") as f:
-                _cache = pickle.load(f)
-            age = ""
-            if _cache.get("last_refresh"):
-                from datetime import datetime as dt
-                try:
-                    lr = dt.fromisoformat(_cache["last_refresh"])
-                    mins = int((dt.utcnow() - lr).total_seconds() / 60)
-                    age = f" ({mins}m old)"
-                except Exception:
-                    pass
-            print(f"[STARTUP] Loaded cache from disk{age}: {_cache.get('stats', {})}")
+    try:
+        result = run_pipeline_from_db(lookback_hours=6, base_url=_base_url)
+        if result and result.get("stats", {}).get("total_incidents", 0) > 0:
+            with _lock:
+                _cache = {**result, "last_refresh": datetime.utcnow().isoformat()}
+            print(f"[STARTUP] Loaded from SQLite: {result['stats']}")
             return True
-        except Exception as e:
-            print(f"[WARN] Cache load failed: {e}")
+    except Exception as e:
+        print(f"[WARN] SQLite load failed: {e}")
     return False
 
 
-# Load from disk immediately — dashboard works instantly on startup
-_load_cache()
+# Load from SQLite immediately — dashboard works on first request
+_load_from_db()
 
 
 def _refresh(lookback_hours: int = 6):
@@ -71,7 +49,6 @@ def _refresh(lookback_hours: int = 6):
         result = run_pipeline(lookback_hours=lookback_hours, base_url=_base_url)
         with _lock:
             _cache = {**result, "last_refresh": datetime.utcnow().isoformat()}
-        _save_cache()
         print(f"[{datetime.utcnow().isoformat()}] Refreshed: {result['stats']}")
     except Exception as e:
         print(f"[ERROR] Refresh failed: {e}")

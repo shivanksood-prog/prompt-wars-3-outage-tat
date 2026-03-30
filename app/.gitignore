@@ -3,3 +3,6 @@ __pycache__/
 .env
 *.egg-info/
 .cache.pkl
+data.db
+data.db-wal
+data.db-shm
