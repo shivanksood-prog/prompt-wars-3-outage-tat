@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geo × Size × Ticket Analysis — Outage Classification</title>
+<style>
+:root{--bg:#FAF9FC;--card:#FFF;--border:#D7D3E0;--text:#161021;--muted:#665E75;--accent:#D9008D;--green:#008043;--green-bg:#E1FAED;--red:#E01E00;--red-bg:#FFE9E5;--amber:#FF8000;--amber-bg:#FFE6CC;--purple:#6D17CE;--purple-bg:#F1E5FF;--divider:#A7A1B2;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;}
+.hero{padding:48px 24px 32px;text-align:center;background:linear-gradient(135deg,#F1EDF7,#FFE5F6,#F1EDF7);border-bottom:1px solid var(--border);}
+.hero-badge{display:inline-block;padding:5px 14px;border-radius:100px;background:rgba(217,0,141,.12);color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px;}
+.hero h1{font-size:clamp(20px,3vw,32px);font-weight:800;margin-bottom:8px;}
+.hero p{font-size:13px;color:var(--muted);max-width:640px;margin:0 auto;}
+.c{max-width:980px;margin:0 auto;padding:0 20px;}
+section{padding:36px 0;border-bottom:1px solid var(--border);}
+section:last-of-type{border-bottom:none;}
+.sl{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent);margin-bottom:4px;}
+.st{font-size:clamp(17px,2.2vw,24px);font-weight:700;margin-bottom:4px;}
+.ss{font-size:12px;color:var(--muted);margin-bottom:18px;max-width:640px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:12px;box-shadow:0 1px 2px rgba(22,16,33,.04);}
+.card h3{font-size:13px;font-weight:700;margin-bottom:6px;}
+.card p,.card li{font-size:12px;color:var(--muted);line-height:1.6;}
+.card ul{list-style:none;padding:0;}.card ul li{padding-left:14px;position:relative;margin-bottom:3px;}
+.card ul li::before{content:'';position:absolute;left:0;top:7px;width:4px;height:4px;border-radius:50%;background:var(--accent);}
+.tw{overflow-x:auto;margin:10px 0;border-radius:8px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:11px;}
+thead th{background:#F1EDF7;color:var(--text);font-weight:700;padding:7px 9px;text-align:left;white-space:nowrap;font-size:10px;text-transform:uppercase;letter-spacing:.3px;}
+tbody td{padding:6px 9px;border-top:1px solid #F1EDF7;color:var(--muted);white-space:nowrap;}
+tbody tr:hover{background:rgba(217,0,141,.03);}
+td.hi{color:var(--accent);font-weight:700;}td.g{color:var(--green);font-weight:600;}td.r{color:var(--red);font-weight:700;}td.a{color:var(--amber);font-weight:600;}
+.kf{padding:10px 14px;border-radius:0 7px 7px 0;margin:8px 0;font-size:11.5px;line-height:1.55;}
+.kf.pink{background:#FFE5F6;border-left:3px solid var(--accent);}.kf.pink strong{color:var(--accent);}
+.kf.red{background:var(--red-bg);border-left:3px solid var(--red);}.kf.red strong{color:var(--red);}
+.kf.green{background:var(--green-bg);border-left:3px solid var(--green);}.kf.green strong{color:var(--green);}
+.kf.amber{background:var(--amber-bg);border-left:3px solid var(--amber);}.kf.amber strong{color:var(--amber);}
+.tag-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:12px 0;}
+.tag{border-radius:9px;padding:14px;border:1px solid var(--border);background:var(--card);}
+.tag .tl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+.tag h4{font-size:13px;font-weight:700;margin-bottom:4px;}
+.tag p{font-size:11px;color:var(--muted);line-height:1.5;}
+.footer{text-align:center;padding:24px;font-size:10px;color:var(--divider);border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">Outage Classification Framework</div>
+  <h1>Geo × Size × Ticket → Probable Cause + TAT</h1>
+  <p>Cutting every outage along 3 dimensions to classify what's wrong, prove it with data, and show what resolution looks like in each bucket.</p>
+</div>
+
+<div class="c">
+
+<!-- ═══ CUT 1: GEO × SIZE ═══ -->
+<section>
+  <div class="sl">Cut 1</div>
+  <div class="st">Geo-Spread × Size Bucket → Resolution TAT</div>
+  <div class="ss">How tightly clustered are the affected devices? Cross-referenced with the V2.1 size classification.</div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>Geo Cluster</th><th>Size</th><th>Severity</th><th>Incidents</th><th>Avg Devices</th><th>P50 TAT</th><th>P80 TAT</th><th>Probable Cause</th></tr></thead>
+      <tbody>
+        <tr style="background:#FFF5F5;"><td class="r">01 SINGLE DEVICE</td><td>TINY</td><td>LOCAL</td><td class="r">46,729</td><td>1.1</td><td class="r">537m</td><td class="r">815m</td><td class="r">Customer power-off / device fault / expired plan artifact</td></tr>
+        <tr><td>01 SINGLE DEVICE</td><td>TINY</td><td>MICRO</td><td>63,354</td><td>1.1</td><td class="g">67m</td><td>145m</td><td>Self-resolving blip or customer reboot</td></tr>
+        <tr style="background:#FFF9F0;"><td class="a">02 SAME BLOCK (&lt;100m)</td><td>TINY</td><td>LOCAL</td><td>618</td><td>2.2</td><td class="r">583m</td><td class="r">894m</td><td class="a">Single splitter / fiber joint fault</td></tr>
+        <tr><td>02 SAME BLOCK</td><td>TINY</td><td>MICRO</td><td>705</td><td>2.3</td><td class="g">64m</td><td>144m</td><td>Brief splitter flap, self-resolved</td></tr>
+        <tr style="background:#FFF9F0;"><td class="a">03 SAME LANE (100-500m)</td><td>TINY</td><td>LOCAL</td><td>4,438</td><td>2.5</td><td class="r">602m</td><td class="r">883m</td><td class="a">Splitter branch / local fiber section</td></tr>
+        <tr><td>03 SAME LANE</td><td>SMALL</td><td>LOCAL</td><td>19</td><td>11.4</td><td>123m</td><td>177m</td><td>Larger splitter cluster or trunk branch</td></tr>
+        <tr style="background:#F0FFF5;"><td class="g">04 NEIGHBORHOOD (500m-1km)</td><td>SMALL</td><td>LOCAL</td><td>74</td><td>14.4</td><td>135m</td><td>201m</td><td>Trunk fiber between OLT and area splitters</td></tr>
+        <tr><td>04 NEIGHBORHOOD</td><td>MEDIUM</td><td>LOCAL</td><td>12</td><td>35.2</td><td class="g">76m</td><td>170m</td><td>Trunk fiber or partial OLT issue</td></tr>
+        <tr style="background:#F0FFF5;"><td class="g">05 AREA (1-3km)</td><td>MEDIUM</td><td>LOCAL</td><td>49</td><td>45.8</td><td class="g">50m</td><td class="g">86m</td><td>OLT/POP level issue (fast resolution = partner knows)</td></tr>
+        <tr><td>05 AREA</td><td>SMALL</td><td>MAJOR</td><td>55</td><td>13.5</td><td class="r">647m</td><td class="r">2,073m</td><td class="r">OLT failure + slow partner response</td></tr>
+        <tr style="background:#F5F0FF;"><td class="hi">06 WIDE (3km+)</td><td>LARGE</td><td>MAJOR</td><td>118</td><td>159.0</td><td class="g">77m</td><td class="g">149m</td><td>Full partner POP/OLT down — obvious, resolved fast</td></tr>
+        <tr><td>06 WIDE</td><td>MEDIUM</td><td>LOCAL</td><td>1,004</td><td>44.5</td><td class="g">64m</td><td>117m</td><td>OLT/POP + resolved in grace</td></tr>
+        <tr><td>06 WIDE</td><td>SMALL</td><td>MAJOR</td><td>367</td><td>14.8</td><td class="r">497m</td><td class="r">935m</td><td class="r">ISP backhaul or chronic OLT — slow because ISP-dependent</td></tr>
+        <tr><td>06 WIDE</td><td>TINY</td><td>LOCAL</td><td>7,397</td><td>3.1</td><td class="r">613m</td><td class="r">964m</td><td class="r">Scattered tiny faults — partner overwhelmed, no triage</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kf pink">
+    <strong>The pattern is clear:</strong> TIGHT geo + SMALL size = splitter/fiber (but takes forever because partner doesn't know WHERE). WIDE geo + LARGE size = OLT/POP (resolves fast because obvious). WIDE geo + SMALL size = ISP-dependent (slowest of all). <strong>Geo-spread tells you the fault level. Size tells you the urgency. Together they predict the resolution path.</strong>
+  </div>
+</section>
+
+<!-- ═══ CUT 2: TICKET OVERLAY ═══ -->
+<section>
+  <div class="sl">Cut 2</div>
+  <div class="st">Service Ticket Overlay → Real Pain vs Silent Outage</div>
+  <div class="ss">Does a customer "Internet Supply Down" ticket exist during the outage? If yes: real pain, not power-off/device-off.</div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>Geo Cluster</th><th>Size</th><th>Ticket?</th><th>Incidents</th><th>Avg TAT</th><th>P50 TAT</th><th>P80 TAT</th><th>Interpretation</th></tr></thead>
+      <tbody>
+        <tr><td>01 SINGLE</td><td>TINY</td><td class="r">HAS TICKET</td><td class="r">712</td><td class="r">1,807m</td><td class="r">1,312m</td><td class="r">2,642m</td><td class="r">Real customer pain. Longest TAT of ANY bucket. Nobody acts.</td></tr>
+        <tr><td>01 SINGLE</td><td>TINY</td><td>NO TICKET</td><td>46,017</td><td>694m</td><td>535m</td><td>803m</td><td>Likely power-off / device-off / expired plan. Lower urgency.</td></tr>
+        <tr><td>02 TIGHT</td><td>TINY</td><td class="r">HAS TICKET</td><td class="r">150</td><td class="r">1,768m</td><td class="r">1,280m</td><td class="r">2,365m</td><td class="r">Real splitter fault + customer hurting. ~30 hours to fix.</td></tr>
+        <tr><td>02 TIGHT</td><td>TINY</td><td>NO TICKET</td><td>4,906</td><td>774m</td><td>592m</td><td>862m</td><td>Probable splitter fault but no customer pain signal yet.</td></tr>
+        <tr><td>03 AREA</td><td>TINY</td><td class="r">HAS TICKET</td><td>263</td><td class="r">1,787m</td><td class="r">1,327m</td><td class="r">2,300m</td><td class="r">Area-level issue, customer calling CS, 22hr avg to fix.</td></tr>
+        <tr><td>03 AREA</td><td>SMALL</td><td class="r">HAS TICKET</td><td>21</td><td class="r">800m</td><td class="r">487m</td><td class="r">916m</td><td class="r">Larger cluster + customer pain. ISP or trunk issue.</td></tr>
+        <tr><td>03 AREA</td><td>MEDIUM</td><td>NO TICKET</td><td>68</td><td class="g">124m</td><td class="g">63m</td><td>176m</td><td class="g">Medium area outage, resolved fast (partner noticed without ticket).</td></tr>
+        <tr><td>04 WIDE</td><td>LARGE</td><td>HAS TICKET</td><td>28</td><td>155m</td><td class="g">87m</td><td>166m</td><td class="g">Big obvious outage. Even with tickets, resolved fast.</td></tr>
+        <tr><td>04 WIDE</td><td>LARGE</td><td>NO TICKET</td><td>90</td><td class="g">110m</td><td class="g">68m</td><td class="g">134m</td><td class="g">Big obvious outage. Partner acts without any ticket.</td></tr>
+        <tr><td>04 WIDE</td><td>MEDIUM</td><td class="r">HAS TICKET</td><td>93</td><td class="r">388m</td><td>196m</td><td>652m</td><td>Medium-wide + ticket = likely ISP-dependent, slower.</td></tr>
+        <tr><td>04 WIDE</td><td>SMALL</td><td class="r">HAS TICKET</td><td>92</td><td class="r">1,068m</td><td class="r">470m</td><td class="r">1,458m</td><td class="r">Small + wide + ticket = ISP fault, partner can't fix, customer suffering.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kf red">
+    <strong>When a customer raises a ticket during a TINY outage, P50 TAT jumps from 535m to 1,312m (2.5x worse).</strong> Ticket = marker of the WORST outages, not a resolution accelerator. These are the ones where the partner has zero clue and the customer is suffering the most. <strong>Ticket overlay flips priority: ticket + outage = real pain, must act NOW.</strong>
+  </div>
+
+  <div class="kf green">
+    <strong>Ticket also negates false causes.</strong> If a customer is calling CS saying "internet down" → the device isn't powered off by the customer, the router isn't switched off, and it's not an expired plan issue. <strong>Ticket = the outage is real and the customer is actively suffering.</strong> This eliminates the power-off/device-off hypothesis for that incident.
+  </div>
+</section>
+
+<!-- ═══ CUT 3: CONCURRENCY ═══ -->
+<section>
+  <div class="sl">Cut 3</div>
+  <div class="st">Concurrent Incidents on Same Partner → Fault Level</div>
+  <div class="ss">When 10+ incidents fire simultaneously on one partner, it's not 10 separate splitter faults — it's OLT/POP/power.</div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>Concurrency</th><th>Size</th><th>Incidents</th><th>P50 TAT</th><th>P80 TAT</th><th>Probable Cause</th></tr></thead>
+      <tbody>
+        <tr><td class="g">01 ISOLATED (0-2)</td><td>TINY</td><td>4,494</td><td>477m</td><td>687m</td><td>Isolated splitter/fiber or device fault</td></tr>
+        <tr><td class="g">01 ISOLATED</td><td>MEDIUM</td><td>106</td><td class="g">58m</td><td class="g">105m</td><td class="g">Local medium outage, partner-fixable</td></tr>
+        <tr><td class="a">02 CLUSTER (3-5)</td><td>TINY</td><td>9,987</td><td>498m</td><td>707m</td><td>Multiple splitter faults or trunk fiber section</td></tr>
+        <tr><td class="a">02 CLUSTER</td><td>LARGE</td><td>30</td><td class="g">72m</td><td class="g">107m</td><td class="g">Large cluster = partner noticed, fast fix</td></tr>
+        <tr><td class="a">03 BURST (6-10)</td><td>TINY</td><td>17,616</td><td>521m</td><td>737m</td><td>Multiple faults or OLT partial failure</td></tr>
+        <tr><td class="a">03 BURST</td><td>MEDIUM</td><td>403</td><td class="g">61m</td><td class="g">123m</td><td class="g">OLT-level, partner resolves quickly</td></tr>
+        <tr><td class="r">04 PARTNER-WIDE (10+)</td><td>TINY</td><td class="r">40,810</td><td class="r">607m</td><td class="r">963m</td><td class="r">OLT/POP down but detected as many TINYs. Partner flooded.</td></tr>
+        <tr><td class="r">04 PARTNER-WIDE</td><td>MEDIUM</td><td>380</td><td>106m</td><td>290m</td><td>OLT/POP — partner acts because it's visible</td></tr>
+        <tr><td class="r">04 PARTNER-WIDE</td><td>SMALL</td><td>590</td><td class="r">338m</td><td class="r">718m</td><td class="r">ISP backhaul or OLT + slow partner</td></tr>
+        <tr><td class="r">04 PARTNER-WIDE</td><td>LARGE</td><td>45</td><td>109m</td><td>310m</td><td>Full OLT down — obvious, but ISP-dependent</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kf red">
+    <strong>40,810 incidents are TINY but have 10+ concurrent on the same partner.</strong> These are NOT 10 separate splitter faults. They're one OLT/POP/power failure broken into many TINY incidents. The partner gets flooded with TINY alerts when the real issue is "your OLT is down." <strong>Concurrency > 10 = reclassify as OLT/POP-level regardless of size.</strong>
+  </div>
+</section>
+
+<!-- ═══ CUT 4: DAY/NIGHT × GEO ═══ -->
+<section>
+  <div class="sl">Cut 4</div>
+  <div class="st">Day vs Night × Geo-Spread</div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>Geo Cluster</th><th>Time</th><th>Incidents</th><th>P50 TAT</th><th>P80 TAT</th><th>Delta</th></tr></thead>
+      <tbody>
+        <tr><td>01 SINGLE</td><td class="g">DAY</td><td>9,961</td><td>567m</td><td>1,127m</td><td rowspan="2" class="r" style="vertical-align:middle;">Day P50 is WORSE for singles (partner prioritizes bigger issues during day)</td></tr>
+        <tr><td>01 SINGLE</td><td class="a">NIGHT</td><td>36,805</td><td>534m</td><td>765m</td></tr>
+        <tr><td>02 TIGHT (&lt;500m)</td><td class="g">DAY</td><td>1,699</td><td>561m</td><td>1,148m</td><td rowspan="2" style="vertical-align:middle;color:var(--muted);font-size:10px;">Tight clusters: similar day/night TAT — nobody acts either way</td></tr>
+        <tr><td>02 TIGHT</td><td class="a">NIGHT</td><td>5,538</td><td>606m</td><td>847m</td></tr>
+        <tr><td>04 WIDE (3km+)</td><td class="g">DAY</td><td>3,122</td><td class="g">327m</td><td>802m</td><td rowspan="2" class="a" style="vertical-align:middle;">Wide outages: 1.8x night penalty (593 vs 327m)</td></tr>
+        <tr><td>04 WIDE</td><td class="a">NIGHT</td><td>5,292</td><td class="a">593m</td><td>851m</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kf amber">
+    <strong>Tight geo-clusters (splitter faults) have almost no day/night difference</strong> — because the partner doesn't know WHERE the fault is regardless of time. Location intelligence would help day AND night equally. <strong>Wide outages have a clear 1.8x night penalty</strong> — partner knows something's wrong but doesn't act at night.
+  </div>
+</section>
+
+<!-- ═══ THE CLASSIFICATION FRAMEWORK ═══ -->
+<section>
+  <div class="sl">The Framework</div>
+  <div class="st">Outage Classification Tags (from Data)</div>
+  <div class="ss">Every outage gets tagged along 3 axes. The combination determines the probable cause, action, and what shows on the map.</div>
+
+  <div class="tag-grid">
+    <div class="tag" style="border-left:4px solid var(--red);">
+      <div class="tl" style="color:var(--red);">Tag: SPLITTER_FAULT</div>
+      <h4>Geo: TIGHT (&lt;500m) + Concurrent: &lt;5 + Size: TINY/SMALL</h4>
+      <p><strong>~5,800 incidents/week.</strong> P50: 592m.<br>Map pin at device centroid. "Technician bhejein is location pe."</p>
+      <p style="margin-top:4px;"><strong>+TICKET?</strong> → P50 jumps to 1,280m. Priority: CRITICAL.</p>
+    </div>
+    <div class="tag" style="border-left:4px solid var(--amber);">
+      <div class="tl" style="color:var(--amber);">Tag: OLT_POP_FAULT</div>
+      <h4>Concurrent: 10+ OR Geo: WIDE + Size: MEDIUM/LARGE</h4>
+      <p><strong>~41,000 incidents/week (mostly as many TINYs).</strong> P50: 64-109m (when obvious) to 607m (when fragmented as TINYs).<br>"Check OLT/power at your POP."</p>
+      <p style="margin-top:4px;"><strong>+TICKET?</strong> → Confirms it's not power-off. Real infrastructure failure.</p>
+    </div>
+    <div class="tag" style="border-left:4px solid var(--purple);">
+      <div class="tl" style="color:var(--purple);">Tag: ISP_BACKHAUL</div>
+      <h4>WIDE + SMALL/MEDIUM + MAJOR severity + multiple partners same area</h4>
+      <p><strong>~400 incidents/week.</strong> P50: 497m.<br>"ISP issue. We're escalating. You can't fix this."</p>
+      <p style="margin-top:4px;"><strong>+TICKET?</strong> → P50 = 470m. Customer suffering but nobody can act locally.</p>
+    </div>
+    <div class="tag" style="border-left:4px solid var(--green);">
+      <div class="tl" style="color:var(--green);">Tag: CUSTOMER_DEVICE</div>
+      <h4>SINGLE device + No neighbors down + No concurrent</h4>
+      <p><strong>~47,000 incidents/week (LOCAL) + 63K (MICRO).</strong><br>MICRO: P50 67m (self-resolves). LOCAL: P50 537m.</p>
+      <p style="margin-top:4px;"><strong>+TICKET?</strong> → Not power-off. Real device or auth issue. "Router restart karein."</p>
+    </div>
+    <div class="tag" style="border-left:4px solid var(--accent);">
+      <div class="tl" style="color:var(--accent);">Tag: TRUNK_FIBER</div>
+      <h4>Geo: AREA (500m-3km) + Concurrent: 3-10 + Size: SMALL/MEDIUM</h4>
+      <p><strong>~500 incidents/week.</strong> P50: 135-177m.<br>"Main fiber trunk between POP and area splitters. Check trunk route."</p>
+    </div>
+    <div class="tag" style="border-left:4px solid var(--divider);">
+      <div class="tl" style="color:var(--divider);">Tag: POWER_LIKELY</div>
+      <h4>WIDE + Concurrent 10+ + NO ticket from any customer</h4>
+      <p><strong>Subset of OLT_POP_FAULT.</strong> When 10+ concurrent but zero customers call → likely area power outage.<br>"DG set check karein ya bijli ka wait karein."</p>
+      <p style="margin-top:4px;"><strong>Ticket negates this tag.</strong> If even 1 customer calls → not power, it's real infra.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ THE MAP VIEW ═══ -->
+<section>
+  <div class="sl">What the Partner Sees</div>
+  <div class="st">Per-Outage Map Link</div>
+  <div class="ss">Each outage alert includes a link to a map view. Not a dashboard — a single-incident view with diagnosis.</div>
+
+  <div class="card">
+    <h3>Map View Structure</h3>
+    <ul>
+      <li><strong style="color:var(--text)">Center:</strong> Centroid of affected device lat/lngs</li>
+      <li><strong style="color:var(--red)">Red pins:</strong> Affected devices (with customer name/address on tap)</li>
+      <li><strong style="color:var(--amber)">Amber pins:</strong> Customers who raised service tickets (the pain signal)</li>
+      <li><strong style="color:var(--green)">Green pins:</strong> Nearby HEALTHY devices (shows the fault boundary — "it's down HERE but fine 200m away")</li>
+      <li><strong style="color:var(--purple)">Purple diamond:</strong> Nearest splitter location (if mapped)</li>
+      <li><strong style="color:var(--text)">Info card overlay:</strong> Classification tag, probable cause, action, "what NOT to do", Google Maps navigation link to fault centroid</li>
+      <li><strong style="color:var(--text)">Ticket badge:</strong> If customer(s) raised tickets → badge showing "2 customers already called CS" with ticket time</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>When Partner Has Multiple Active Outages</h3>
+    <p>The WhatsApp message links to a <strong style="color:var(--text)">partner-level overview map</strong> instead of single-incident:</p>
+    <ul>
+      <li>All active outages as clusters, color-coded by tag (red=splitter, amber=OLT, purple=ISP, grey=device)</li>
+      <li>Bottom summary: "2 splitter faults to fix (route link) | 1 OLT issue (check POP) | 8 device-level (auto-SMS sent)"</li>
+      <li>Tap any cluster → drills into single-incident map</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══ SUMMARY ═══ -->
+<section>
+  <div class="sl">Summary</div>
+  <div class="st">The Classification Engine in One Table</div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>Tag</th><th>Signals</th><th>Incidents/Week</th><th>P50 TAT Today</th><th>Ticket Effect</th><th>Map Pin</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td class="r">SPLITTER_FAULT</td><td>Tight geo + low concurrent</td><td>~5,800</td><td>592m</td><td class="r">→ 1,280m (2.2x worse)</td><td>Red at centroid + splitter diamond</td><td>Technician dispatch to specific location</td></tr>
+        <tr><td class="a">OLT_POP_FAULT</td><td>10+ concurrent OR wide+med/large</td><td>~41,000</td><td>64-607m</td><td>Confirms not power-off</td><td>Amber at POP</td><td>Check OLT/DG at POP</td></tr>
+        <tr><td class="hi">ISP_BACKHAUL</td><td>Wide + multi-partner + major</td><td>~400</td><td>497m</td><td>Customer suffering but can't fix</td><td>Purple zone overlay</td><td>Auto-escalate to ISP. Partner: do nothing.</td></tr>
+        <tr><td class="g">CUSTOMER_DEVICE</td><td>Single + no neighbors down</td><td>~47K (LOCAL)</td><td>537m</td><td>Real issue, not power-off</td><td>Grey (no partner dispatch)</td><td>Auto-SMS: restart router</td></tr>
+        <tr><td style="color:var(--accent);">TRUNK_FIBER</td><td>Area geo + 3-10 concurrent</td><td>~500</td><td>135m</td><td>Severity amplifier</td><td>Red line along trunk</td><td>Check main fiber from POP</td></tr>
+        <tr><td style="color:var(--divider);">POWER_LIKELY</td><td>Wide + 10+ concurrent + 0 tickets</td><td>Subset of OLT</td><td>—</td><td class="g">Ticket NEGATES this tag</td><td>Grey zone</td><td>Wait for power or start DG</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="kf pink">
+    <strong>The ticket overlay is the key differentiator.</strong> It separates "device is off because customer turned off power" from "device is off because fiber is cut and customer is calling CS in frustration." Same outage signal, completely different action. <strong>Ticket = the customer is actively hurting. No ticket + single device = probably not urgent.</strong>
+  </div>
+</section>
+
+</div>
+
+<div class="footer">
+  Prompt Wars 3 &mdash; Geo × Size × Ticket Classification &middot; Data: 7-day window ending 2026-03-30
+</div>
+</body>
+</html>
