@@ -2,10 +2,12 @@
 import requests
 import json
 from typing import Any
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from config import METABASE_URL, METABASE_API_KEY, METABASE_DB_ID
 
 BATCH_SIZE = 200  # Larger batches, fewer round-trips
+MAX_WORKERS = 6   # Parallel Metabase queries
 
 
 def run_query(sql: str) -> dict[str, Any]:
@@ -36,6 +38,11 @@ def _batched_ids(ids: list[int], batch_size: int = BATCH_SIZE):
         yield ids[i:i + batch_size]
 
 
+def _run_batched_query(sql: str) -> list[dict]:
+    """Run a single query and return rows. Used as thread target."""
+    return run_query(sql)["rows"]
+
+
 def fetch_incidents(lookback_hours: int = 6) -> list[dict]:
     """Fetch recent incidents with severity LOCAL/MAJOR."""
     sql = f"""
@@ -59,11 +66,11 @@ def fetch_incidents(lookback_hours: int = 6) -> list[dict]:
 
 
 def fetch_incident_devices(incident_ids: list[int]) -> list[dict]:
-    """Fetch devices for given incident IDs with lat/lng. Batched to avoid Metabase row limit."""
+    """Fetch devices for given incident IDs with lat/lng. Batched + parallel."""
     if not incident_ids:
         return []
-    all_rows = []
-    for batch in _batched_ids(incident_ids):
+
+    def _query_batch(batch):
         ids_str = ",".join(str(i) for i in batch)
         sql = f"""
         WITH latest_customer AS (
@@ -91,17 +98,24 @@ def fetch_incident_devices(incident_ids: list[int]) -> list[dict]:
         WHERE d._FIVETRAN_DELETED = FALSE
         AND d.INCIDENT_ID IN ({ids_str})
         """
-        all_rows.extend(run_query(sql)["rows"])
+        return run_query(sql)["rows"]
+
+    all_rows = []
+    batches = list(_batched_ids(incident_ids))
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
+        futures = {pool.submit(_query_batch, b): b for b in batches}
+        for f in as_completed(futures):
+            all_rows.extend(f.result())
     return all_rows
 
 
 def fetch_concurrent_counts(partner_ids: list[int], lookback_hours: int = 6) -> dict[int, dict]:
-    """For each incident, count how many other incidents are concurrent on same partner. Batched."""
+    """For each incident, count concurrent incidents on same partner. Batched + parallel."""
     if not partner_ids:
         return {}
     unique_pids = list(set(partner_ids))
-    all_results: dict[int, dict] = {}
-    for batch in _batched_ids(unique_pids, batch_size=100):
+
+    def _query_batch(batch):
         pids = ",".join(str(p) for p in batch)
         sql = f"""
         WITH recent AS (
@@ -122,17 +136,24 @@ def fetch_concurrent_counts(partner_ids: list[int], lookback_hours: int = 6) -> 
         WHERE a.SEVERITY IN ('LOCAL','MAJOR')
         GROUP BY 1, 2
         """
-        for r in run_query(sql)["rows"]:
-            all_results[r["INCIDENT_ID"]] = r
+        return run_query(sql)["rows"]
+
+    all_results: dict[int, dict] = {}
+    batches = list(_batched_ids(unique_pids, batch_size=100))
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
+        futures = {pool.submit(_query_batch, b): b for b in batches}
+        for f in as_completed(futures):
+            for r in f.result():
+                all_results[r["INCIDENT_ID"]] = r
     return all_results
 
 
 def fetch_tickets_for_incidents(incident_ids: list[int]) -> dict[int, list[dict]]:
-    """Fetch service tickets matching incident devices during outage window. Batched."""
+    """Fetch service tickets matching incident devices during outage window. Batched + parallel."""
     if not incident_ids:
         return {}
-    tickets_by_incident: dict[int, list[dict]] = {}
-    for batch in _batched_ids(incident_ids, batch_size=100):
+
+    def _query_batch(batch):
         ids_str = ",".join(str(i) for i in batch)
         sql = f"""
         WITH latest_customer AS (
@@ -157,7 +178,14 @@ def fetch_tickets_for_incidents(incident_ids: list[int]) -> dict[int, list[dict]
         WHERE d._FIVETRAN_DELETED = FALSE
         AND d.INCIDENT_ID IN ({ids_str})
         """
-        for r in run_query(sql)["rows"]:
-            iid = r["INCIDENT_ID"]
-            tickets_by_incident.setdefault(iid, []).append(r)
+        return run_query(sql)["rows"]
+
+    tickets_by_incident: dict[int, list[dict]] = {}
+    batches = list(_batched_ids(incident_ids, batch_size=100))
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
+        futures = {pool.submit(_query_batch, b): b for b in batches}
+        for f in as_completed(futures):
+            for r in f.result():
+                iid = r["INCIDENT_ID"]
+                tickets_by_incident.setdefault(iid, []).append(r)
     return tickets_by_incident

@@ -1,5 +1,6 @@
 """Main pipeline: fetch → enrich → classify → consolidate → generate messages."""
 from __future__ import annotations
+from concurrent.futures import ThreadPoolExecutor
 from engine.fetch import (
     fetch_incidents, fetch_incident_devices,
     fetch_concurrent_counts, fetch_tickets_for_incidents,
@@ -12,7 +13,7 @@ from engine.templates import build_message_en, build_message_hi
 def run_pipeline(lookback_hours: int = 6, base_url: str = "") -> dict:
     """Run the full pipeline and return partner digests with messages."""
 
-    # 1. Fetch incidents
+    # 1. Fetch incidents (must complete first — other queries depend on IDs)
     raw_incidents = fetch_incidents(lookback_hours)
     if not raw_incidents:
         return {"partners": {}, "incidents": [], "stats": {"total_incidents": 0}}
@@ -20,16 +21,17 @@ def run_pipeline(lookback_hours: int = 6, base_url: str = "") -> dict:
     incident_ids = [r["ID"] for r in raw_incidents]
     partner_ids = [r["PARTNER_ID"] for r in raw_incidents]
 
-    # 2. Fetch devices with geo
-    raw_devices = fetch_incident_devices(incident_ids)
+    # 2. Fetch devices, concurrent counts, and tickets IN PARALLEL
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        fut_devices = pool.submit(fetch_incident_devices, incident_ids)
+        fut_concurrent = pool.submit(fetch_concurrent_counts, partner_ids, lookback_hours)
+        fut_tickets = pool.submit(fetch_tickets_for_incidents, incident_ids)
 
-    # 3. Fetch concurrent counts
-    concurrent_map = fetch_concurrent_counts(partner_ids, lookback_hours)
+        raw_devices = fut_devices.result()
+        concurrent_map = fut_concurrent.result()
+        ticket_map = fut_tickets.result()
 
-    # 4. Fetch tickets
-    ticket_map = fetch_tickets_for_incidents(incident_ids)
-
-    # 5. Build ClassifiedIncident objects
+    # 3. Build ClassifiedIncident objects
     # Group devices by incident
     devices_by_incident: dict[int, list[dict]] = {}
     for d in raw_devices:
@@ -81,10 +83,10 @@ def run_pipeline(lookback_hours: int = 6, base_url: str = "") -> dict:
         classify(inc)
         classified.append(inc)
 
-    # 6. Consolidate per partner
+    # 4. Consolidate per partner
     partner_digests = consolidate(classified)
 
-    # 7. Generate messages
+    # 5. Generate messages
     for pid, digest in partner_digests.items():
         map_url = f"{base_url}/partner/{pid}/map" if base_url else f"/partner/{pid}/map"
         digest.message_en = build_message_en(digest, map_url)
