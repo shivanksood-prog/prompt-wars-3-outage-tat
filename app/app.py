@@ -147,10 +147,33 @@ def _fix_msg_urls(msg: str) -> str:
 
 
 # ── API routes ──
+_refresh_in_progress = False
+
 @app.get("/api/refresh")
 def api_refresh(hours: int = Query(6)):
-    _refresh(hours)
-    return {"status": "ok", "stats": _cache.get("stats", {})}
+    """Trigger refresh in background — returns immediately with current data."""
+    global _refresh_in_progress
+    if _refresh_in_progress:
+        return {"status": "already_refreshing", "stats": _cache.get("stats", {})}
+    def _bg():
+        global _refresh_in_progress
+        _refresh_in_progress = True
+        try:
+            _refresh(hours)
+        finally:
+            _refresh_in_progress = False
+    threading.Thread(target=_bg, daemon=True).start()
+    return {"status": "refreshing", "stats": _cache.get("stats", {})}
+
+
+@app.get("/api/status")
+def api_status():
+    return {
+        "refreshing": _refresh_in_progress,
+        "has_data": len(_cache.get("incidents", [])) > 0,
+        "last_refresh": _cache.get("last_refresh"),
+        "stats": _cache.get("stats", {}),
+    }
 
 
 @app.get("/api/feed")
@@ -478,9 +501,14 @@ async function loadFeed() {
     render();
     populateDemoSelect();
     const t = feedData.last_refresh;
-    document.getElementById('refresh-time').textContent = t
-      ? 'Last refresh: ' + new Date(t+'Z').toLocaleTimeString() + ' · Auto-refreshes every 5 min'
-      : 'Loading initial data...';
+    if (t) {
+      document.getElementById('refresh-time').textContent = 'Last refresh: ' + new Date(t+'Z').toLocaleTimeString() + ' · Auto-refreshes every 5 min';
+      document.getElementById('refresh-time').style.background = '';
+    } else if (!allIncidents.length) {
+      document.getElementById('refresh-time').textContent = '⏳ First load — fetching from Metabase in background...';
+      document.getElementById('refresh-time').style.background = '#FFE5F6';
+      setTimeout(loadFeed, 2000);
+    }
   } catch(e) { console.error(e); }
 }
 
@@ -659,9 +687,20 @@ function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 
 async function manualRefresh() {
   const hours = document.getElementById('hours').value;
-  document.getElementById('refresh-time').textContent = 'Refreshing...';
-  await fetch('/api/refresh?hours='+hours);
-  await loadFeed();
+  const bar = document.getElementById('refresh-time');
+  bar.textContent = '⏳ Refreshing from Metabase... (dashboard still usable)';
+  bar.style.background = '#FFE5F6';
+  fetch('/api/refresh?hours='+hours);
+  const poll = setInterval(async () => {
+    try {
+      const s = await (await fetch('/api/status')).json();
+      if (!s.refreshing) {
+        clearInterval(poll);
+        bar.style.background = '';
+        await loadFeed();
+      }
+    } catch(e) {}
+  }, 1500);
 }
 
 // ── Demo flow ──
