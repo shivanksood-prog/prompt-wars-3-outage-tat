@@ -357,44 +357,60 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-
 .demo-body{padding:20px;display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
 .demo-body.hidden{display:none;}
 
-/* Steps column */
 .demo-steps{flex:1;min-width:280px;}
-.step{display:flex;gap:12px;align-items:flex-start;margin-bottom:16px;opacity:.4;transition:opacity .3s;}
-.step.active{opacity:1;}
-.step.done{opacity:.6;}
+.step{display:flex;gap:12px;align-items:flex-start;margin-bottom:16px;opacity:.35;transition:opacity .3s;}
+.step.active{opacity:1;}.step.done{opacity:.55;}
 .step-num{width:28px;height:28px;border-radius:50%;background:var(--neutral100);color:var(--muted);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .3s;}
 .step.active .step-num{background:var(--accent);color:white;}
 .step.done .step-num{background:var(--green);color:white;}
 .step-content h4{font-size:12px;font-weight:700;margin-bottom:3px;}
 .step-content p{font-size:11px;color:var(--muted);line-height:1.4;}
-
-/* Step 1: selector */
 .demo-select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Inter',sans-serif;margin-top:8px;cursor:pointer;background:var(--card);}
 .demo-select:focus{border-color:var(--accent);outline:none;}
-
-/* Step 2: send btn */
 .demo-send{margin-top:8px;padding:10px 24px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;background:var(--accent);color:white;display:none;transition:opacity .15s;}
 .demo-send:hover{opacity:.85;}
 .demo-send:disabled{opacity:.4;cursor:not-allowed;}
+.demo-reset{margin-top:8px;padding:8px 18px;border:1px solid var(--border);border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;background:var(--card);color:var(--muted);display:none;}
 
-/* Phone mockup */
-.phone{width:300px;flex-shrink:0;position:relative;}
-.phone-frame{background:#161021;border-radius:28px;padding:8px;box-shadow:0 4px 24px rgba(22,16,33,.2);}
-.phone-notch{width:100px;height:6px;background:#352D42;border-radius:3px;margin:4px auto 8px;}
-.phone-screen{background:#ECE5DD;border-radius:20px;min-height:340px;max-height:400px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;justify-content:flex-end;}
-.phone-empty{text-align:center;color:#A7A1B2;font-size:11px;padding:40px 20px;margin:auto;}
+/* Phone — WhatsApp style */
+.phone{width:300px;flex-shrink:0;}
+.phone-frame{background:#161021;border-radius:28px;padding:8px;box-shadow:0 4px 24px rgba(22,16,33,.25);}
+.phone-notch{width:100px;height:6px;background:#352D42;border-radius:3px;margin:4px auto 0;}
+.wa-header{background:#075E54;border-radius:16px 16px 0 0;padding:10px 14px;display:flex;align-items:center;gap:10px;display:none;}
+.wa-header .wa-avatar{width:32px;height:32px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:800;}
+.wa-header .wa-name{color:white;font-size:12px;font-weight:700;}
+.wa-header .wa-status{color:#a8d8c8;font-size:9px;}
+.phone-screen{background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect fill="%23ECE5DD" width="200" height="200"/><rect fill="%23e5ded5" x="0" y="0" width="100" height="100" opacity="0.15"/><rect fill="%23d6cfc5" x="100" y="100" width="100" height="100" opacity="0.1"/></svg>') #ECE5DD;border-radius:0 0 16px 16px;min-height:340px;max-height:400px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;justify-content:flex-end;}
+.phone-screen.no-header{border-radius:16px;}
+.phone-empty{text-align:center;color:#8e8e8e;font-size:11px;padding:40px 16px;margin:auto;line-height:1.6;}
 .phone-home{width:40px;height:5px;background:#352D42;border-radius:3px;margin:8px auto 4px;}
 
-/* Chat bubble */
-.chat-bubble{background:white;border-radius:0 12px 12px 12px;padding:10px 14px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.08);font-size:11px;line-height:1.6;white-space:pre-wrap;max-height:240px;overflow-y:auto;animation:slideIn .4s ease-out;}
-.chat-bubble .cb-sender{font-size:10px;font-weight:700;color:var(--accent);margin-bottom:4px;}
-.chat-bubble .cb-time{font-size:9px;color:#A7A1B2;text-align:right;margin-top:4px;}
-.chat-bubble a{color:var(--accent);text-decoration:underline;font-weight:600;}
-@keyframes slideIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+/* Typing indicator */
+.typing{display:flex;gap:4px;padding:10px 16px;background:white;border-radius:0 12px 12px 12px;width:60px;box-shadow:0 1px 2px rgba(0,0,0,.08);margin-bottom:8px;}
+.typing span{width:6px;height:6px;background:#90959a;border-radius:50%;animation:typeBounce 1.2s infinite;}
+.typing span:nth-child(2){animation-delay:.2s;}
+.typing span:nth-child(3){animation-delay:.4s;}
+@keyframes typeBounce{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-4px);}}
 
-/* CTA in chat */
-.chat-cta{display:block;margin-top:10px;padding:10px;background:var(--accent);color:white;border-radius:8px;text-align:center;font-size:12px;font-weight:700;text-decoration:none;animation:pulse 1.5s ease-in-out infinite;}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(217,0,141,.3);}50%{box-shadow:0 0 0 8px rgba(217,0,141,0);}}
+/* Chat bubble — WhatsApp style */
+.chat-bubble{background:white;border-radius:0 12px 12px 12px;padding:8px 10px;margin-bottom:6px;box-shadow:0 1px 1px rgba(0,0,0,.06);font-size:11px;line-height:1.55;animation:slideIn .3s ease-out;}
+.chat-bubble.wa-green{background:#DCF8C6;border-radius:12px 0 12px 12px;}
+.cb-line{margin:2px 0;}.cb-bold{font-weight:700;color:#1a1a1a;}
+.cb-muted{color:#667781;font-size:10px;}
+.cb-link{color:#027eb5;text-decoration:none;word-break:break-all;}
+.cb-link:hover{text-decoration:underline;}
+.cb-time{font-size:9px;color:#667781;text-align:right;margin-top:3px;display:flex;align-items:center;justify-content:flex-end;gap:3px;}
+.cb-ticks{color:#53BDEB;}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* Map CTA in chat */
+.chat-cta{display:block;margin-top:8px;padding:10px;background:#075E54;color:white;border-radius:8px;text-align:center;font-size:12px;font-weight:700;text-decoration:none;animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(7,94,84,.3);}50%{box-shadow:0 0 0 8px rgba(7,94,84,0);}}
+
+/* Lang toggle in phone */
+.phone-lang{display:none;padding:4px 8px;background:rgba(0,0,0,.06);border-radius:0 0 8px 8px;display:flex;gap:4px;justify-content:center;}
+.phone-lang-btn{padding:3px 10px;border-radius:4px;font-size:9px;font-weight:700;cursor:pointer;border:none;background:transparent;color:#667781;}
+.phone-lang-btn.active{background:#075E54;color:white;}
 
 @media(max-width:700px){
   .demo-body{flex-direction:column;}
@@ -456,12 +472,21 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-
           <p>Partner clicks the link and sees exactly where to go and what to do.</p>
         </div>
       </div>
+      <button class="demo-reset" id="demo-reset" onclick="resetDemo()">↺ Try Another Partner</button>
     </div>
     <div class="phone">
       <div class="phone-frame">
         <div class="phone-notch"></div>
-        <div class="phone-screen" id="phone-screen">
-          <div class="phone-empty">Select an outage to start the demo →</div>
+        <div class="wa-header" id="wa-header">
+          <div class="wa-avatar">W</div>
+          <div><div class="wa-name">WIOM Alerts</div><div class="wa-status">online</div></div>
+        </div>
+        <div class="phone-screen no-header" id="phone-screen">
+          <div class="phone-empty">Select a partner outage<br>to see what they receive →</div>
+        </div>
+        <div class="phone-lang" id="phone-lang">
+          <button class="phone-lang-btn" onclick="setPhoneLang('en')">EN</button>
+          <button class="phone-lang-btn active" onclick="setPhoneLang('hi')">HI</button>
         </div>
         <div class="phone-home"></div>
       </div>
@@ -707,6 +732,7 @@ async function manualRefresh() {
 let demoOpen = true;
 let demoPartnerData = null;
 let demoLang = 'hi';
+let demoPartnerLocalities = {};  // pid → locality name
 
 function toggleDemo() {
   demoOpen = !demoOpen;
@@ -716,18 +742,29 @@ function toggleDemo() {
 
 function populateDemoSelect() {
   const sel = document.getElementById('demo-partner');
-  // Keep first placeholder option
   while (sel.options.length > 1) sel.remove(1);
-  // Add partners sorted by devices (most impactful first), only those with actionable issues
+
+  // Build locality map from incident data (#6: show area name, not raw ID)
+  demoPartnerLocalities = {};
+  allIncidents.forEach(inc => {
+    if (!demoPartnerLocalities[inc.partner_id] && inc.devices && inc.devices.length) {
+      for (const d of inc.devices) {
+        if (d.locality) { demoPartnerLocalities[inc.partner_id] = d.locality; break; }
+        if (d.address) { demoPartnerLocalities[inc.partner_id] = d.address.substring(0,35); break; }
+      }
+    }
+  });
+
+  // #12: Only show actionable partners (OLT/splitter), sorted by impact
   const actionable = allPartners.filter(p => p.olt_backbone || p.primary_splitter || p.secondary_splitter);
-  const sorted = actionable.length ? actionable : allPartners;
-  sorted.slice(0, 50).forEach(p => {
-    let label = `Partner ${p.partner_id} — ${p.total_devices} devices, ${p.total_incidents} issue(s)`;
+  const sorted = actionable.length ? actionable : allPartners.slice(0, 30);
+  sorted.slice(0, 40).forEach(p => {
+    const loc = demoPartnerLocalities[p.partner_id] || 'Unknown area';
     const types = [];
-    if (p.olt_backbone) types.push(p.olt_backbone + ' OLT');
-    if (p.primary_splitter) types.push(p.primary_splitter + ' primary');
-    if (p.secondary_splitter) types.push(p.secondary_splitter + ' secondary');
-    if (types.length) label += ' [' + types.join(', ') + ']';
+    if (p.olt_backbone) types.push('🔴 ' + p.olt_backbone + ' OLT');
+    if (p.primary_splitter) types.push('🟠 ' + p.primary_splitter + ' primary splitter');
+    if (p.secondary_splitter) types.push('🟡 ' + p.secondary_splitter + ' secondary');
+    const label = `${loc} — ${p.total_devices} devices ${types.length ? '(' + types.join(', ') + ')' : ''}`;
     const opt = document.createElement('option');
     opt.value = p.partner_id;
     opt.textContent = label;
@@ -742,6 +779,8 @@ function setDemoStep(n) {
     if (i < n) el.classList.add('done');
     else if (i === n) el.classList.add('active');
   });
+  // #11: Show reset after step 4
+  document.getElementById('demo-reset').style.display = n >= 4 ? 'inline-block' : 'none';
 }
 
 function onDemoSelect() {
@@ -749,14 +788,96 @@ function onDemoSelect() {
   if (!pid) {
     setDemoStep(1);
     document.getElementById('demo-send').style.display = 'none';
-    document.getElementById('phone-screen').innerHTML = '<div class="phone-empty">Select an outage to start the demo →</div>';
+    document.getElementById('wa-header').style.display = 'none';
+    document.getElementById('phone-screen').classList.add('no-header');
+    document.getElementById('phone-screen').innerHTML = '<div class="phone-empty">Select a partner outage<br>to see what they receive →</div>';
+    document.getElementById('phone-lang').style.display = 'none';
     return;
   }
   document.getElementById('demo-send').style.display = 'inline-block';
   document.getElementById('demo-send').disabled = false;
-  document.getElementById('phone-screen').innerHTML = '<div class="phone-empty">Press "Send Alert Message" to simulate →</div>';
+  document.getElementById('demo-send').textContent = '📩 Send Alert Message';
+  // #7: Show WhatsApp header
+  document.getElementById('wa-header').style.display = 'flex';
+  document.getElementById('phone-screen').classList.remove('no-header');
+  document.getElementById('phone-screen').innerHTML = '<div class="phone-empty">Press "Send Alert" →</div>';
+  document.getElementById('phone-lang').style.display = 'none';
   setDemoStep(2);
   demoPartnerData = null;
+}
+
+// #1: Build a short, clean message for the phone (not the full wall of text)
+function buildPhoneMsg(data, lang) {
+  const incs = data.incidents || [];
+  if (!incs.length) return '<div class="cb-line cb-muted">No active outages</div>';
+
+  // Group by classification
+  const groups = {};
+  incs.forEach(i => { groups[i.classification] = groups[i.classification] || []; groups[i.classification].push(i); });
+  const totalDevices = incs.reduce((s,i) => s + i.device_count, 0);
+
+  const CLS = {
+    OLT_BACKBONE: {icon:'🔴', en:'Major network issue', hi:'Bada network issue'},
+    PRIMARY_SPLITTER: {icon:'🟠', en:'Primary splitter issue', hi:'Primary splitter issue'},
+    SECONDARY_SPLITTER: {icon:'🟡', en:'Secondary splitter issue', hi:'Secondary splitter issue'},
+    CUSTOMER_ISSUE: {icon:'⚪', en:'Customer device issue', hi:'Customer device issue'},
+    CUSTOMER_POWER: {icon:'⚪', en:'Customer power off', hi:'Customer power off'},
+  };
+  const order = ['OLT_BACKBONE','PRIMARY_SPLITTER','SECONDARY_SPLITTER','CUSTOMER_ISSUE','CUSTOMER_POWER'];
+  const ACTIONS = {
+    OLT_BACKBONE: {en:'Check ISP, office power & equipment. Call ISP if OLT is fine.', hi:'ISP check karein, office power dekhein. OLT sahi toh ISP ko call karein.'},
+    PRIMARY_SPLITTER: {en:'Check primary splitter & main fiber trunk.', hi:'Primary splitter aur main fiber check karein.'},
+    SECONDARY_SPLITTER: {en:'Send technician to splitter location.', hi:'Technician bhejein splitter pe. Devices restart MAT karein.'},
+    CUSTOMER_ISSUE: {en:'Guide customer to restart router.', hi:'Customer ko router restart bolein.'},
+    CUSTOMER_POWER: {en:'No action — likely power off by customer.', hi:'Kuch karne ki zaroorat nahi.'},
+  };
+
+  let html = `<div class="cb-line cb-bold">🔔 WIOM OUTAGE ALERT</div>`;
+  html += `<div class="cb-line cb-muted">${incs.length} issue(s) · ${totalDevices} customers</div>`;
+  html += `<div style="height:6px"></div>`;
+
+  order.forEach(cls => {
+    const g = groups[cls];
+    if (!g) return;
+    const m = CLS[cls] || {icon:'?', en:cls, hi:cls};
+    const act = ACTIONS[cls] || {en:'', hi:''};
+    const devs = g.reduce((s,i)=>s+i.device_count, 0);
+    // #2: Show locality not raw coords
+    const locs = [];
+    g.forEach(i => { if (i.devices && i.devices[0]) { const l = i.devices[0].locality || i.devices[0].address; if (l && !locs.includes(l.substring(0,25))) locs.push(l.substring(0,25)); }});
+    html += `<div class="cb-line">${m.icon} <span class="cb-bold">${lang==='hi'?m.hi:m.en}</span> — ${devs} devices</div>`;
+    if (locs.length) html += `<div class="cb-line cb-muted">📍 ${locs.slice(0,2).join(', ')}</div>`;
+    html += `<div class="cb-line cb-muted">→ ${lang==='hi'?act.hi:act.en}</div>`;
+    html += `<div style="height:4px"></div>`;
+  });
+
+  return html;
+}
+
+// #5: Language toggle on phone
+function setPhoneLang(lang) {
+  demoLang = lang;
+  document.querySelectorAll('.phone-lang-btn').forEach(b => b.classList.toggle('active', b.textContent === lang.toUpperCase()));
+  if (demoPartnerData) renderPhoneMsg();
+}
+
+function renderPhoneMsg() {
+  const pid = document.getElementById('demo-partner').value;
+  // #3: Use proper base URL for map link
+  const mapUrl = '/partner/' + pid + '/map';
+  const now = new Date();
+  const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  const screen = document.getElementById('phone-screen');
+  screen.innerHTML = `
+    <div class="chat-bubble">
+      ${buildPhoneMsg(demoPartnerData, demoLang)}
+      <a class="cb-link" href="${mapUrl}" target="_blank">🗺️ View outage map & details</a>
+      <div class="cb-time">${timeStr} <span class="cb-ticks">✓✓</span></div>
+    </div>
+    <a class="chat-cta" href="${mapUrl}" target="_blank">🗺️ Open Outage Map →</a>
+  `;
+  screen.scrollTop = screen.scrollHeight;
 }
 
 async function onDemoSend() {
@@ -767,6 +888,10 @@ async function onDemoSend() {
   btn.textContent = '⏳ Sending...';
   setDemoStep(3);
 
+  // #8: Show typing indicator first
+  const screen = document.getElementById('phone-screen');
+  screen.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+
   // Fetch partner data
   try {
     const resp = await fetch('/api/partner/' + pid);
@@ -776,25 +901,33 @@ async function onDemoSend() {
     return;
   }
 
+  // #8: Wait for typing animation, then show message
+  await new Promise(r => setTimeout(r, 1200));
   btn.textContent = '✓ Sent';
 
-  // Show message in phone
-  const msg = demoPartnerData.message_hi || demoPartnerData.message_en || 'No message';
-  const mapUrl = '/partner/' + pid + '/map';
-  const now = new Date();
-  const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  // #5: Show language toggle
+  document.getElementById('phone-lang').style.display = 'flex';
 
-  const screen = document.getElementById('phone-screen');
-  screen.innerHTML = `
-    <div class="chat-bubble">
-      <div class="cb-sender">WIOM Outage Alert</div>
-      ${escHtml(msg).replace(/🗺️.*?(\/partner\/\d+\/map)/g, '🗺️ <a href="$1" target="_blank">View Outage Map</a>')}
-      <a class="chat-cta" href="${mapUrl}" target="_blank">🗺️ Open Outage Map →</a>
-      <div class="cb-time">${timeStr} ✓✓</div>
-    </div>
-  `;
+  // #1, #2, #3, #4, #10: Render clean short message with single CTA
+  renderPhoneMsg();
 
-  setTimeout(() => setDemoStep(4), 800);
+  // #9: Step 4 highlights after a beat
+  setTimeout(() => setDemoStep(4), 600);
+}
+
+// #11: Reset demo
+function resetDemo() {
+  document.getElementById('demo-partner').value = '';
+  document.getElementById('demo-send').style.display = 'none';
+  document.getElementById('demo-send').textContent = '📩 Send Alert Message';
+  document.getElementById('demo-send').disabled = false;
+  document.getElementById('wa-header').style.display = 'none';
+  document.getElementById('phone-screen').classList.add('no-header');
+  document.getElementById('phone-screen').innerHTML = '<div class="phone-empty">Select a partner outage<br>to see what they receive →</div>';
+  document.getElementById('phone-lang').style.display = 'none';
+  document.getElementById('demo-reset').style.display = 'none';
+  demoPartnerData = null;
+  setDemoStep(1);
 }
 
 loadFeed();
