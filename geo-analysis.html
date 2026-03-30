@@ -60,28 +60,53 @@ td.hi{color:var(--accent);font-weight:700;}td.g{color:var(--green);font-weight:6
 
   <div class="tw">
     <table>
-      <thead><tr><th>Geo Cluster</th><th>Size</th><th>Severity</th><th>Incidents</th><th>Avg Devices</th><th>P50 TAT</th><th>P80 TAT</th><th>Probable Cause</th></tr></thead>
+      <thead><tr><th>Geo Cluster</th><th>Size</th><th>Severity</th><th>Time</th><th>Incidents</th><th>P50 TAT</th><th>P80 TAT</th><th>Night Penalty</th><th>Probable Cause</th></tr></thead>
       <tbody>
-        <tr style="background:#FFF5F5;"><td class="r">01 SINGLE DEVICE</td><td>TINY</td><td>LOCAL</td><td class="r">46,729</td><td>1.1</td><td class="r">537m</td><td class="r">815m</td><td class="r">Customer power-off / device fault / expired plan artifact</td></tr>
-        <tr><td>01 SINGLE DEVICE</td><td>TINY</td><td>MICRO</td><td>63,354</td><td>1.1</td><td class="g">67m</td><td>145m</td><td>Self-resolving blip or customer reboot</td></tr>
-        <tr style="background:#FFF9F0;"><td class="a">02 SAME BLOCK (&lt;100m)</td><td>TINY</td><td>LOCAL</td><td>618</td><td>2.2</td><td class="r">583m</td><td class="r">894m</td><td class="a">Single splitter / fiber joint fault</td></tr>
-        <tr><td>02 SAME BLOCK</td><td>TINY</td><td>MICRO</td><td>705</td><td>2.3</td><td class="g">64m</td><td>144m</td><td>Brief splitter flap, self-resolved</td></tr>
-        <tr style="background:#FFF9F0;"><td class="a">03 SAME LANE (100-500m)</td><td>TINY</td><td>LOCAL</td><td>4,438</td><td>2.5</td><td class="r">602m</td><td class="r">883m</td><td class="a">Splitter branch / local fiber section</td></tr>
-        <tr><td>03 SAME LANE</td><td>SMALL</td><td>LOCAL</td><td>19</td><td>11.4</td><td>123m</td><td>177m</td><td>Larger splitter cluster or trunk branch</td></tr>
-        <tr style="background:#F0FFF5;"><td class="g">04 NEIGHBORHOOD (500m-1km)</td><td>SMALL</td><td>LOCAL</td><td>74</td><td>14.4</td><td>135m</td><td>201m</td><td>Trunk fiber between OLT and area splitters</td></tr>
-        <tr><td>04 NEIGHBORHOOD</td><td>MEDIUM</td><td>LOCAL</td><td>12</td><td>35.2</td><td class="g">76m</td><td>170m</td><td>Trunk fiber or partial OLT issue</td></tr>
-        <tr style="background:#F0FFF5;"><td class="g">05 AREA (1-3km)</td><td>MEDIUM</td><td>LOCAL</td><td>49</td><td>45.8</td><td class="g">50m</td><td class="g">86m</td><td>OLT/POP level issue (fast resolution = partner knows)</td></tr>
-        <tr><td>05 AREA</td><td>SMALL</td><td>MAJOR</td><td>55</td><td>13.5</td><td class="r">647m</td><td class="r">2,073m</td><td class="r">OLT failure + slow partner response</td></tr>
-        <tr style="background:#F5F0FF;"><td class="hi">06 WIDE (3km+)</td><td>LARGE</td><td>MAJOR</td><td>118</td><td>159.0</td><td class="g">77m</td><td class="g">149m</td><td>Full partner POP/OLT down — obvious, resolved fast</td></tr>
-        <tr><td>06 WIDE</td><td>MEDIUM</td><td>LOCAL</td><td>1,004</td><td>44.5</td><td class="g">64m</td><td>117m</td><td>OLT/POP + resolved in grace</td></tr>
-        <tr><td>06 WIDE</td><td>SMALL</td><td>MAJOR</td><td>367</td><td>14.8</td><td class="r">497m</td><td class="r">935m</td><td class="r">ISP backhaul or chronic OLT — slow because ISP-dependent</td></tr>
-        <tr><td>06 WIDE</td><td>TINY</td><td>LOCAL</td><td>7,397</td><td>3.1</td><td class="r">613m</td><td class="r">964m</td><td class="r">Scattered tiny faults — partner overwhelmed, no triage</td></tr>
+        <tr style="background:#FFF5F5;"><td rowspan="2" class="r">01 SINGLE</td><td rowspan="2">TINY</td><td rowspan="2">LOCAL</td><td class="g">DAY</td><td>9,968</td><td class="r">567m</td><td class="r">1,128m</td><td rowspan="2" style="vertical-align:middle;text-align:center;font-size:10px;">Night P50 actually <span class="g">lower</span> (534 vs 567). Day P80 is worse.</td><td rowspan="2" class="r" style="vertical-align:middle;">Customer power-off / device fault</td></tr>
+        <tr style="background:#FFF5F5;"><td class="a">NIGHT</td><td class="r">36,832</td><td class="r">534m</td><td>765m</td></tr>
+
+        <tr><td rowspan="2">01 SINGLE</td><td rowspan="2">TINY</td><td rowspan="2">MICRO</td><td class="g">DAY</td><td>36,274</td><td class="g">64m</td><td>136m</td><td rowspan="2" style="vertical-align:middle;text-align:center;font-size:10px;">~1.1x</td><td rowspan="2" style="vertical-align:middle;">Self-resolving blip</td></tr>
+        <tr><td class="a">NIGHT</td><td>27,300</td><td>72m</td><td>159m</td></tr>
+
+        <tr style="background:#FFF9F0;"><td rowspan="2" class="a">02 BLOCK<br>(&lt;100m)</td><td rowspan="2">TINY</td><td rowspan="2">LOCAL</td><td class="g">DAY</td><td>157</td><td>495m</td><td class="r">1,142m</td><td rowspan="2" style="vertical-align:middle;text-align:center;font-size:10px;">Night P50 <span class="r">higher</span> (592 vs 495) but P80 is <span class="g">lower</span></td><td rowspan="2" class="a" style="vertical-align:middle;">Splitter / fiber joint fault</td></tr>
+        <tr style="background:#FFF9F0;"><td class="a">NIGHT</td><td>461</td><td class="r">592m</td><td>852m</td></tr>
+
+        <tr style="background:#FFF9F0;"><td rowspan="2" class="a">03 LANE<br>(100-500m)</td><td rowspan="2">TINY</td><td rowspan="2">LOCAL</td><td class="g">DAY</td><td>1,034</td><td>575m</td><td class="r">1,134m</td><td rowspan="2" style="vertical-align:middle;text-align:center;font-size:10px;">Night P50 <span class="r">worse</span> (605 vs 575). Day P80 much worse.</td><td rowspan="2" class="a" style="vertical-align:middle;">Splitter branch / local fiber</td></tr>
+        <tr style="background:#FFF9F0;"><td class="a">NIGHT</td><td>3,414</td><td class="r">605m</td><td>842m</td></tr>
+
+        <tr style="background:#F0FFF5;"><td rowspan="2" class="g">04 NBHD<br>(500m-1km)</td><td rowspan="2">SMALL</td><td rowspan="2">LOCAL</td><td class="g">DAY</td><td>44</td><td>120m</td><td>197m</td><td rowspan="2" style="vertical-align:middle;text-align:center;font-size:10px;">~1.2x</td><td rowspan="2" style="vertical-align:middle;">Trunk fiber or partial OLT</td></tr>
+        <tr style="background:#F0FFF5;"><td class="a">NIGHT</td><td>30</td><td>143m</td><td>209m</td></tr>
+
+        <tr style="background:#F0FFF5;"><td rowspan="2" class="g">04 NBHD</td><td rowspan="2">SMALL</td><td rowspan="2">MAJOR</td><td class="g">DAY</td><td>17</td><td class="a">406m</td><td>682m</td><td rowspan="2" style="vertical-align:middle;text-align:center;font-size:10px;color:var(--red);font-weight:700;">1.6x</td><td rowspan="2" style="vertical-align:middle;">OLT + ISP dependent</td></tr>
+        <tr style="background:#F0FFF5;"><td class="a">NIGHT</td><td>22</td><td class="r">661m</td><td class="r">899m</td></tr>
+
+        <tr style="background:#F0FFF5;"><td rowspan="2" class="g">05 AREA<br>(1-3km)</td><td rowspan="2">MEDIUM</td><td rowspan="2">LOCAL</td><td class="g">DAY</td><td>24</td><td class="g">49m</td><td class="g">82m</td><td rowspan="2" style="vertical-align:middle;text-align:center;font-size:10px;">~1.1x</td><td rowspan="2" style="vertical-align:middle;">OLT/POP — partner notices fast</td></tr>
+        <tr style="background:#F0FFF5;"><td class="a">NIGHT</td><td>25</td><td class="g">52m</td><td>95m</td></tr>
+
+        <tr><td rowspan="2">05 AREA</td><td rowspan="2">SMALL</td><td rowspan="2">MAJOR</td><td class="g">DAY</td><td>18</td><td class="a">437m</td><td>1,042m</td><td rowspan="2" style="vertical-align:middle;text-align:center;font-size:10px;color:var(--red);font-weight:700;">1.7x</td><td rowspan="2" class="r" style="vertical-align:middle;">OLT failure + slow partner</td></tr>
+        <tr><td class="a">NIGHT</td><td>37</td><td class="r">737m</td><td class="r">2,237m</td></tr>
+
+        <tr style="background:#F5F0FF;"><td rowspan="2" class="hi">06 WIDE<br>(3km+)</td><td rowspan="2">LARGE</td><td rowspan="2">MAJOR</td><td class="g">DAY</td><td>75</td><td class="g">72m</td><td class="g">112m</td><td rowspan="2" style="vertical-align:middle;text-align:center;font-size:10px;color:var(--red);font-weight:700;">1.5x</td><td rowspan="2" style="vertical-align:middle;">Full POP down — obvious</td></tr>
+        <tr style="background:#F5F0FF;"><td class="a">NIGHT</td><td>45</td><td class="a">107m</td><td>235m</td></tr>
+
+        <tr><td rowspan="2">06 WIDE</td><td rowspan="2">MEDIUM</td><td rowspan="2">LOCAL</td><td class="g">DAY</td><td>693</td><td class="g">62m</td><td class="g">106m</td><td rowspan="2" style="vertical-align:middle;text-align:center;font-size:10px;">~1.2x</td><td rowspan="2" style="vertical-align:middle;">OLT/POP, resolved in grace</td></tr>
+        <tr><td class="a">NIGHT</td><td>318</td><td>72m</td><td>132m</td></tr>
+
+        <tr><td rowspan="2">06 WIDE</td><td rowspan="2">SMALL</td><td rowspan="2">MAJOR</td><td class="g">DAY</td><td>167</td><td class="a">425m</td><td>877m</td><td rowspan="2" style="vertical-align:middle;text-align:center;font-size:10px;color:var(--red);font-weight:700;">1.4x</td><td rowspan="2" class="r" style="vertical-align:middle;">ISP backhaul — slow, ISP-dependent</td></tr>
+        <tr><td class="a">NIGHT</td><td>201</td><td class="r">594m</td><td class="r">1,001m</td></tr>
+
+        <tr><td rowspan="2">06 WIDE</td><td rowspan="2">TINY</td><td rowspan="2">LOCAL</td><td class="g">DAY</td><td>2,028</td><td>562m</td><td class="r">1,197m</td><td rowspan="2" style="vertical-align:middle;text-align:center;font-size:10px;">Night P50 worse (623 vs 562), Day P80 much worse</td><td rowspan="2" class="r" style="vertical-align:middle;">Scattered tiny faults — no triage</td></tr>
+        <tr><td class="a">NIGHT</td><td>5,386</td><td class="r">623m</td><td>891m</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="kf pink">
-    <strong>The pattern is clear:</strong> TIGHT geo + SMALL size = splitter/fiber (but takes forever because partner doesn't know WHERE). WIDE geo + LARGE size = OLT/POP (resolves fast because obvious). WIDE geo + SMALL size = ISP-dependent (slowest of all). <strong>Geo-spread tells you the fault level. Size tells you the urgency. Together they predict the resolution path.</strong>
+    <strong>Key patterns from the day/night split:</strong><br>
+    1. <strong>TINY LOCAL incidents have almost no day/night difference</strong> (534-605m night vs 495-575m day). Partner can't find the fault regardless of time — location intelligence helps equally.<br>
+    2. <strong>MAJOR incidents show 1.4-1.7x night penalty</strong> — partner knows something's wrong but doesn't act at night. Worst: AREA+SMALL+MAJOR goes from 437m (day) to 737m (night) = 1.7x.<br>
+    3. <strong>MEDIUM/LARGE LOCAL incidents barely have a night penalty</strong> (62→72m, 72→107m) — these are obvious enough that partners fix them regardless of time.<br>
+    4. <strong>Day P80 is often WORSE than night P80</strong> for TINY incidents (1,128m vs 765m) — the long tail during the day is worse because daytime TINY incidents that don't self-resolve get stuck behind the partner's higher-priority daytime work.
   </div>
 </section>
 
