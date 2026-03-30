@@ -305,6 +305,60 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-
 
 .empty-state{text-align:center;padding:48px 24px;color:var(--muted);}
 .empty-state h3{font-size:16px;margin-bottom:6px;color:var(--text);}
+
+/* Demo section */
+.demo{margin:16px 28px;background:var(--card);border:2px solid var(--accent);border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(217,0,141,.08);}
+.demo-header{padding:14px 20px;background:linear-gradient(135deg,#443152,#161021);display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.demo-header h2{color:#FAF9FC;font-size:14px;font-weight:800;display:flex;align-items:center;gap:8px;}
+.demo-header h2 span{background:var(--accent);color:white;font-size:9px;padding:2px 8px;border-radius:100px;text-transform:uppercase;letter-spacing:.5px;}
+.demo-toggle{color:#A7A1B2;font-size:18px;transition:transform .2s;}
+.demo-body{padding:20px;display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
+.demo-body.hidden{display:none;}
+
+/* Steps column */
+.demo-steps{flex:1;min-width:280px;}
+.step{display:flex;gap:12px;align-items:flex-start;margin-bottom:16px;opacity:.4;transition:opacity .3s;}
+.step.active{opacity:1;}
+.step.done{opacity:.6;}
+.step-num{width:28px;height:28px;border-radius:50%;background:var(--neutral100);color:var(--muted);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .3s;}
+.step.active .step-num{background:var(--accent);color:white;}
+.step.done .step-num{background:var(--green);color:white;}
+.step-content h4{font-size:12px;font-weight:700;margin-bottom:3px;}
+.step-content p{font-size:11px;color:var(--muted);line-height:1.4;}
+
+/* Step 1: selector */
+.demo-select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:'Inter',sans-serif;margin-top:8px;cursor:pointer;background:var(--card);}
+.demo-select:focus{border-color:var(--accent);outline:none;}
+
+/* Step 2: send btn */
+.demo-send{margin-top:8px;padding:10px 24px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;background:var(--accent);color:white;display:none;transition:opacity .15s;}
+.demo-send:hover{opacity:.85;}
+.demo-send:disabled{opacity:.4;cursor:not-allowed;}
+
+/* Phone mockup */
+.phone{width:300px;flex-shrink:0;position:relative;}
+.phone-frame{background:#161021;border-radius:28px;padding:8px;box-shadow:0 4px 24px rgba(22,16,33,.2);}
+.phone-notch{width:100px;height:6px;background:#352D42;border-radius:3px;margin:4px auto 8px;}
+.phone-screen{background:#ECE5DD;border-radius:20px;min-height:340px;max-height:400px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;justify-content:flex-end;}
+.phone-empty{text-align:center;color:#A7A1B2;font-size:11px;padding:40px 20px;margin:auto;}
+.phone-home{width:40px;height:5px;background:#352D42;border-radius:3px;margin:8px auto 4px;}
+
+/* Chat bubble */
+.chat-bubble{background:white;border-radius:0 12px 12px 12px;padding:10px 14px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.08);font-size:11px;line-height:1.6;white-space:pre-wrap;max-height:240px;overflow-y:auto;animation:slideIn .4s ease-out;}
+.chat-bubble .cb-sender{font-size:10px;font-weight:700;color:var(--accent);margin-bottom:4px;}
+.chat-bubble .cb-time{font-size:9px;color:#A7A1B2;text-align:right;margin-top:4px;}
+.chat-bubble a{color:var(--accent);text-decoration:underline;font-weight:600;}
+@keyframes slideIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+/* CTA in chat */
+.chat-cta{display:block;margin-top:10px;padding:10px;background:var(--accent);color:white;border-radius:8px;text-align:center;font-size:12px;font-weight:700;text-decoration:none;animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(217,0,141,.3);}50%{box-shadow:0 0 0 8px rgba(217,0,141,0);}}
+
+@media(max-width:700px){
+  .demo-body{flex-direction:column;}
+  .phone{width:100%;max-width:320px;margin:0 auto;}
+  .demo{margin:12px 12px;}
+}
 </style>
 </head><body>
 
@@ -319,6 +373,60 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-
   </div>
 </div>
 <div class="refresh-bar" id="refresh-time">Loading data...</div>
+
+<!-- DEMO SECTION -->
+<div class="demo">
+  <div class="demo-header" onclick="toggleDemo()">
+    <h2>🎯 Try the Partner Experience <span>Live Demo</span></h2>
+    <span class="demo-toggle" id="demo-arrow">▼</span>
+  </div>
+  <div class="demo-body" id="demo-body">
+    <div class="demo-steps">
+      <div class="step active" id="step-1">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>Select an Outage</h4>
+          <p>Pick any active partner outage to see what they would receive.</p>
+          <select class="demo-select" id="demo-partner" onchange="onDemoSelect()">
+            <option value="">— Select a partner outage —</option>
+          </select>
+        </div>
+      </div>
+      <div class="step" id="step-2">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>Send Alert to Partner</h4>
+          <p>Click to simulate sending the intelligent payload message.</p>
+          <button class="demo-send" id="demo-send" onclick="onDemoSend()">📩 Send Alert Message</button>
+        </div>
+      </div>
+      <div class="step" id="step-3">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>Partner Receives Message</h4>
+          <p>See the message appear on the partner's phone with diagnosis + map link.</p>
+        </div>
+      </div>
+      <div class="step" id="step-4">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h4>Partner Opens Map</h4>
+          <p>Partner clicks the link and sees exactly where to go and what to do.</p>
+        </div>
+      </div>
+    </div>
+    <div class="phone">
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen" id="phone-screen">
+          <div class="phone-empty">Select an outage to start the demo →</div>
+        </div>
+        <div class="phone-home"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="stats" id="stats"></div>
 <div class="view-tabs" id="view-tabs">
   <div class="vtab active" onclick="setView('grouped')">Group by Issue Type</div>
@@ -349,6 +457,7 @@ async function loadFeed() {
     allIncidents = incData.incidents || [];
     renderStats(incData.stats);
     render();
+    populateDemoSelect();
     const t = feedData.last_refresh;
     document.getElementById('refresh-time').textContent = t
       ? 'Last refresh: ' + new Date(t+'Z').toLocaleTimeString() + ' · Auto-refreshes every 5 min'
@@ -534,6 +643,100 @@ async function manualRefresh() {
   document.getElementById('refresh-time').textContent = 'Refreshing...';
   await fetch('/api/refresh?hours='+hours);
   await loadFeed();
+}
+
+// ── Demo flow ──
+let demoOpen = true;
+let demoPartnerData = null;
+let demoLang = 'hi';
+
+function toggleDemo() {
+  demoOpen = !demoOpen;
+  document.getElementById('demo-body').classList.toggle('hidden', !demoOpen);
+  document.getElementById('demo-arrow').textContent = demoOpen ? '▼' : '▶';
+}
+
+function populateDemoSelect() {
+  const sel = document.getElementById('demo-partner');
+  // Keep first placeholder option
+  while (sel.options.length > 1) sel.remove(1);
+  // Add partners sorted by devices (most impactful first), only those with actionable issues
+  const actionable = allPartners.filter(p => p.olt_backbone || p.primary_splitter || p.secondary_splitter);
+  const sorted = actionable.length ? actionable : allPartners;
+  sorted.slice(0, 50).forEach(p => {
+    let label = `Partner ${p.partner_id} — ${p.total_devices} devices, ${p.total_incidents} issue(s)`;
+    const types = [];
+    if (p.olt_backbone) types.push(p.olt_backbone + ' OLT');
+    if (p.primary_splitter) types.push(p.primary_splitter + ' primary');
+    if (p.secondary_splitter) types.push(p.secondary_splitter + ' secondary');
+    if (types.length) label += ' [' + types.join(', ') + ']';
+    const opt = document.createElement('option');
+    opt.value = p.partner_id;
+    opt.textContent = label;
+    sel.appendChild(opt);
+  });
+}
+
+function setDemoStep(n) {
+  [1,2,3,4].forEach(i => {
+    const el = document.getElementById('step-'+i);
+    el.classList.remove('active','done');
+    if (i < n) el.classList.add('done');
+    else if (i === n) el.classList.add('active');
+  });
+}
+
+function onDemoSelect() {
+  const pid = document.getElementById('demo-partner').value;
+  if (!pid) {
+    setDemoStep(1);
+    document.getElementById('demo-send').style.display = 'none';
+    document.getElementById('phone-screen').innerHTML = '<div class="phone-empty">Select an outage to start the demo →</div>';
+    return;
+  }
+  document.getElementById('demo-send').style.display = 'inline-block';
+  document.getElementById('demo-send').disabled = false;
+  document.getElementById('phone-screen').innerHTML = '<div class="phone-empty">Press "Send Alert Message" to simulate →</div>';
+  setDemoStep(2);
+  demoPartnerData = null;
+}
+
+async function onDemoSend() {
+  const pid = document.getElementById('demo-partner').value;
+  if (!pid) return;
+  const btn = document.getElementById('demo-send');
+  btn.disabled = true;
+  btn.textContent = '⏳ Sending...';
+  setDemoStep(3);
+
+  // Fetch partner data
+  try {
+    const resp = await fetch('/api/partner/' + pid);
+    demoPartnerData = await resp.json();
+  } catch(e) {
+    btn.textContent = '❌ Error';
+    return;
+  }
+
+  btn.textContent = '✓ Sent';
+
+  // Show message in phone
+  const msg = demoPartnerData.message_hi || demoPartnerData.message_en || 'No message';
+  const mapUrl = '/partner/' + pid + '/map';
+  const now = new Date();
+  const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  const screen = document.getElementById('phone-screen');
+  screen.innerHTML = `
+    <div class="chat-bubble">
+      <div class="cb-sender">WIOM Outage Alert</div>
+      ${escHtml(msg).replace(/🗺️.*?(\/partner\/\d+\/map)/g, '🗺️ <a href="$1" target="_blank">View Outage Map</a>')}
+      <a class="chat-cta" href="${mapUrl}" target="_blank">🗺️ Open Outage Map →</a>
+      <div class="cb-time">${timeStr} ✓✓</div>
+    </div>
+  `;
+
+  setTimeout(() => setDemoStep(4), 800);
 }
 
 loadFeed();
