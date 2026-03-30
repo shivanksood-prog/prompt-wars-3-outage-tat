@@ -1,5 +1,6 @@
 """FastAPI app — dashboard + partner map views."""
 from __future__ import annotations
+import os
 import json
 import time
 import threading
@@ -15,6 +16,9 @@ from engine.consolidator import PartnerDigest
 
 app = FastAPI(title="Outage Intelligent Payload")
 
+# ── Base URL: set via env var, or auto-detected from first request ──
+_base_url: str = os.environ.get("BASE_URL", "")
+
 # ── In-memory cache ──
 _cache: dict = {"partners": {}, "incidents": [], "stats": {}, "last_refresh": None}
 _lock = threading.Lock()
@@ -23,8 +27,7 @@ _lock = threading.Lock()
 def _refresh(lookback_hours: int = 6):
     global _cache
     try:
-        base_url = ""  # Will be set dynamically
-        result = run_pipeline(lookback_hours=lookback_hours, base_url=base_url)
+        result = run_pipeline(lookback_hours=lookback_hours, base_url=_base_url)
         with _lock:
             _cache = {**result, "last_refresh": datetime.utcnow().isoformat()}
         print(f"[{datetime.utcnow().isoformat()}] Refreshed: {result['stats']}")
@@ -103,6 +106,27 @@ def _inc_to_dict(inc: ClassifiedIncident) -> dict:
     }
 
 
+# ── Auto-detect base URL from first request ──
+@app.middleware("http")
+async def detect_base_url(request: Request, call_next):
+    global _base_url
+    if not _base_url:
+        scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
+        host = request.headers.get("x-forwarded-host", request.headers.get("host", ""))
+        if host:
+            _base_url = f"{scheme}://{host}"
+            # Re-generate messages with correct URL on next refresh
+            print(f"[INFO] Base URL detected: {_base_url}")
+    return await call_next(request)
+
+
+def _fix_msg_urls(msg: str) -> str:
+    """Replace relative /partner/ URLs with absolute URLs if base_url is known."""
+    if _base_url and msg and "/partner/" in msg and "://" not in msg.split("/partner/")[0].split("\n")[-1]:
+        msg = msg.replace("/partner/", f"{_base_url}/partner/")
+    return msg
+
+
 # ── API routes ──
 @app.get("/api/refresh")
 def api_refresh(hours: int = Query(6)):
@@ -126,8 +150,8 @@ def api_feed():
                 "secondary_splitter": len(digest.secondary_splitter),
                 "customer_issue": len(digest.customer_issue),
                 "customer_power": len(digest.customer_power),
-                "message_en": digest.message_en,
-                "message_hi": digest.message_hi,
+                "message_en": _fix_msg_urls(digest.message_en),
+                "message_hi": _fix_msg_urls(digest.message_hi),
                 "center_lat": digest.center_lat,
                 "center_lng": digest.center_lng,
             })
@@ -159,8 +183,8 @@ def api_partner(partner_id: int):
         return {
             "partner_id": partner_id,
             "incidents": partner_incidents,
-            "message_en": digest.message_en if digest else "",
-            "message_hi": digest.message_hi if digest else "",
+            "message_en": _fix_msg_urls(digest.message_en) if digest else "",
+            "message_hi": _fix_msg_urls(digest.message_hi) if digest else "",
         }
 
 
