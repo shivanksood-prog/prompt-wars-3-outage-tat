@@ -521,79 +521,104 @@ setInterval(loadFeed, 300000);
 # ── Partner Map HTML ──
 MAP_HTML = """<!DOCTYPE html>
 <html><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Wiom — Your Outage Map</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-:root{--bg:#FAF9FC;--card:#FFF;--border:#D7D3E0;--text:#161021;--muted:#665E75;--accent:#D9008D;--green:#008043;--green-bg:#E1FAED;--red:#E01E00;--red-bg:#FFE9E5;--amber:#FF8000;--amber-bg:#FFE6CC;--neutral100:#F1EDF7;--neutral800:#352D42;}
+:root{--bg:#FAF9FC;--card:#FFF;--border:#D7D3E0;--text:#161021;--muted:#665E75;--accent:#D9008D;--green:#008043;--green-bg:#E1FAED;--red:#E01E00;--red-bg:#FFE9E5;--amber:#FF8000;--amber-bg:#FFE6CC;--neutral100:#F1EDF7;--neutral800:#352D42;--wa-green:#25D366;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
-#map{height:55vh;width:100%;border-bottom:2px solid var(--accent);}
-.header{padding:14px 18px;background:var(--neutral800);color:#FAF9FC;}
-.header h1{font-size:15px;font-weight:800;}
-.header p{font-size:11px;color:#A7A1B2;margin-top:2px;}
+#map{height:45vh;width:100%;border-bottom:2px solid var(--accent);}
+.header{padding:12px 16px;background:var(--neutral800);color:#FAF9FC;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;}
+.header h1{font-size:14px;font-weight:800;}
+.header p{font-size:10px;color:#A7A1B2;margin-top:1px;}
+.header-back{color:#A7A1B2;text-decoration:none;font-size:11px;font-weight:600;}
+.header-back:hover{color:#FAF9FC;}
 
-/* Summary cards */
-.summary{padding:14px 18px;display:flex;gap:8px;flex-wrap:wrap;}
-.sum-card{padding:10px 14px;border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;}
-.sum-card .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.sum-red{background:var(--red-bg);color:var(--red);}
-.sum-red .dot{background:var(--red);}
-.sum-amber{background:var(--amber-bg);color:var(--amber);}
-.sum-amber .dot{background:var(--amber);}
-.sum-grey{background:var(--neutral100);color:var(--muted);}
-.sum-grey .dot{background:var(--muted);}
-.sum-green{background:var(--green-bg);color:var(--green);}
-.sum-green .dot{background:var(--green);}
-.sum-pink{background:#FFE5F6;color:var(--accent);}
-.sum-pink .dot{background:var(--accent);}
+.summary{padding:10px 16px;display:flex;gap:6px;flex-wrap:wrap;}
+.sum-card{padding:7px 10px;border-radius:6px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px;}
+.sum-card .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.sum-red{background:var(--red-bg);color:var(--red);}.sum-red .dot{background:var(--red);}
+.sum-amber{background:var(--amber-bg);color:var(--amber);}.sum-amber .dot{background:var(--amber);}
+.sum-grey{background:var(--neutral100);color:var(--muted);}.sum-grey .dot{background:var(--muted);}
+.sum-green{background:var(--green-bg);color:var(--green);}.sum-green .dot{background:var(--green);}
+.sum-pink{background:#FFE5F6;color:var(--accent);}.sum-pink .dot{background:var(--accent);}
 .sum-total{background:var(--neutral800);color:#FAF9FC;font-weight:700;}
 
-/* Action panel below map */
-.action-panel{padding:14px 18px;}
-.action-panel h3{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text);}
-.action-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:8px;margin-bottom:8px;font-size:12px;line-height:1.5;}
+.action-panel{padding:10px 16px;}
+.action-panel h3{font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text);}
+.action-item{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-radius:8px;margin-bottom:6px;font-size:11px;line-height:1.5;}
 .action-item.fix{background:var(--red-bg);}.action-item.check{background:var(--amber-bg);}
 .action-item.info{background:var(--neutral100);}.action-item.complaint{background:var(--green-bg);}
-.action-item .ai{font-size:16px;flex-shrink:0;}.action-item strong{color:var(--text);}
+.action-item .ai{font-size:14px;flex-shrink:0;}.action-item strong{color:var(--text);}
 
-/* Message section */
-.msg-section{padding:14px 18px;border-top:1px solid var(--border);}
-.msg-section h3{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;}
-.msg-tabs{display:flex;gap:5px;margin-bottom:6px;}
-.msg-tab{padding:4px 12px;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--muted);}
-.msg-tab.active{background:var(--accent);color:white;border-color:var(--accent);}
-.msg-content{padding:14px;background:var(--neutral100);border-radius:8px;white-space:pre-wrap;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;max-height:260px;overflow-y:auto;}
+/* WhatsApp send section */
+.wa-section{padding:14px 16px;border-top:1px solid var(--border);background:var(--card);}
+.wa-section h3{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px;}
+.wa-send-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.wa-input{flex:1;min-width:180px;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;outline:none;transition:border .15s;}
+.wa-input:focus{border-color:var(--accent);}
+.wa-btn{padding:10px 20px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;display:flex;align-items:center;gap:6px;transition:opacity .15s;white-space:nowrap;}
+.wa-btn:hover{opacity:.85;}
+.wa-btn-send{background:var(--wa-green);color:white;}
+.wa-btn-copy{background:var(--neutral100);color:var(--muted);border:1px solid var(--border);}
+.wa-lang-row{display:flex;gap:5px;margin-bottom:8px;}
+.wa-lang{padding:5px 14px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--muted);}
+.wa-lang.active{background:var(--accent);color:white;border-color:var(--accent);}
+.wa-preview{padding:12px;background:var(--neutral100);border-radius:8px;white-space:pre-wrap;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;max-height:200px;overflow-y:auto;}
+.wa-status{margin-top:8px;padding:8px 12px;border-radius:6px;font-size:11px;font-weight:600;display:none;}
+.wa-status.ok{display:block;background:var(--green-bg);color:var(--green);}
+.wa-status.err{display:block;background:var(--red-bg);color:var(--red);}
 
 /* Leaflet popup */
-.leaflet-popup-content{font-family:'Inter',sans-serif;font-size:12px;line-height:1.5;max-width:300px;}
+.leaflet-popup-content{font-family:'Inter',sans-serif;font-size:12px;line-height:1.5;max-width:280px;}
 .popup-tag{display:inline-block;padding:3px 10px;border-radius:100px;font-size:10px;font-weight:700;margin-bottom:6px;}
-.popup-action{padding:8px 10px;background:var(--neutral100);border-radius:6px;margin:8px 0;font-size:11px;line-height:1.5;}
-.popup-action strong{color:var(--text);}
 .popup-nav{display:inline-block;margin-top:8px;padding:8px 16px;background:var(--green);color:white;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;width:100%;text-align:center;}
-.popup-ticket{margin-top:6px;padding:5px 8px;background:var(--green-bg);border-radius:5px;font-size:11px;color:var(--green);font-weight:600;}
-.popup-time{font-size:11px;color:var(--muted);margin:4px 0;}
-.popup-devices{margin-top:8px;max-height:100px;overflow-y:auto;border-top:1px solid var(--border);padding-top:6px;}
-.popup-device{font-size:11px;padding:3px 0;border-bottom:1px solid #eee;line-height:1.4;}
+
+/* Mobile responsive */
+@media(max-width:600px){
+  #map{height:40vh;}
+  .header{padding:10px 12px;}
+  .header h1{font-size:13px;}
+  .summary{padding:8px 12px;gap:5px;}
+  .sum-card{padding:5px 8px;font-size:10px;}
+  .action-panel{padding:8px 12px;}
+  .action-item{padding:6px 10px;font-size:10px;}
+  .wa-section{padding:10px 12px;}
+  .wa-send-row{flex-direction:column;}
+  .wa-input{min-width:auto;width:100%;}
+  .wa-btn{justify-content:center;}
+  .leaflet-popup-content{font-size:11px;max-width:240px;}
+}
 </style>
 </head><body>
+
 <div class="header">
-  <h1>Your Network — Outage Map</h1>
-  <p id="subtitle">Loading...</p>
+  <div>
+    <h1>Your Network — Outage Map</h1>
+    <p id="subtitle">Loading...</p>
+  </div>
+  <a href="/" class="header-back">← Dashboard</a>
 </div>
 <div id="map"></div>
 <div class="summary" id="summary"></div>
 <div class="action-panel" id="action-panel"></div>
-<div class="msg-section">
-  <h3>WhatsApp Message Preview</h3>
-  <div class="msg-tabs">
-    <div class="msg-tab active" onclick="showMsg('en')">English</div>
-    <div class="msg-tab" onclick="showMsg('hi')">Hindi</div>
+
+<div class="wa-section">
+  <h3>Send Alert on WhatsApp</h3>
+  <div class="wa-send-row">
+    <input type="tel" id="wa-phone" class="wa-input" placeholder="Enter mobile number (e.g. 9876543210)" maxlength="10" pattern="[0-9]{10}">
+    <button class="wa-btn wa-btn-send" onclick="sendWhatsApp()">📱 Send on WhatsApp</button>
+    <button class="wa-btn wa-btn-copy" onclick="copyMsg()">📋 Copy Message</button>
   </div>
-  <div class="msg-content" id="msg-en"></div>
-  <div class="msg-content" id="msg-hi" style="display:none;"></div>
+  <div class="wa-lang-row">
+    <div class="wa-lang active" onclick="setWaLang('en')">English</div>
+    <div class="wa-lang" onclick="setWaLang('hi')">Hindi</div>
+  </div>
+  <div class="wa-preview" id="wa-preview"></div>
+  <div class="wa-status" id="wa-status"></div>
 </div>
 
 <script>
@@ -617,10 +642,12 @@ const TAG_BG = {
   CUSTOMER_ISSUE: '#F1EDF7', CUSTOMER_POWER: '#F1EDF7'
 };
 
+let msgEn = '', msgHi = '', currentWaLang = 'en';
+
 function circleIcon(color, count) {
   return L.divIcon({
-    html: `<div style="background:${color};width:24px;height:24px;border-radius:50%;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:800;">${count}</div>`,
-    className: '', iconSize: [24, 24], iconAnchor: [12, 12]
+    html: `<div style="background:${color};width:26px;height:26px;border-radius:50%;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:800;">${count}</div>`,
+    className: '', iconSize: [26, 26], iconAnchor: [13, 13]
   });
 }
 
@@ -630,10 +657,10 @@ async function load() {
 
   document.getElementById('subtitle').textContent =
     `${data.incidents.length} active outage(s) in your network`;
-  document.getElementById('msg-en').textContent = data.message_en;
-  document.getElementById('msg-hi').textContent = data.message_hi;
+  msgEn = data.message_en;
+  msgHi = data.message_hi;
+  document.getElementById('wa-preview').textContent = msgEn;
 
-  // Summary cards
   const cls_count = {};
   let total_devices = 0, total_tickets = 0;
   data.incidents.forEach(inc => {
@@ -642,28 +669,26 @@ async function load() {
     total_tickets += inc.ticket_count;
   });
 
-  let sumHtml = `<div class="sum-card sum-total">📱 ${total_devices} customers affected</div>`;
-  if (cls_count.OLT_BACKBONE) sumHtml += `<div class="sum-card sum-red"><span class="dot"></span>${cls_count.OLT_BACKBONE} OLT/backbone</div>`;
-  if (cls_count.PRIMARY_SPLITTER) sumHtml += `<div class="sum-card sum-amber"><span class="dot"></span>${cls_count.PRIMARY_SPLITTER} primary splitter</div>`;
-  if (cls_count.SECONDARY_SPLITTER) sumHtml += `<div class="sum-card sum-pink"><span class="dot"></span>${cls_count.SECONDARY_SPLITTER} secondary splitter</div>`;
+  let sumHtml = `<div class="sum-card sum-total">📱 ${total_devices} customers</div>`;
+  if (cls_count.OLT_BACKBONE) sumHtml += `<div class="sum-card sum-red"><span class="dot"></span>${cls_count.OLT_BACKBONE} OLT</div>`;
+  if (cls_count.PRIMARY_SPLITTER) sumHtml += `<div class="sum-card sum-amber"><span class="dot"></span>${cls_count.PRIMARY_SPLITTER} primary</div>`;
+  if (cls_count.SECONDARY_SPLITTER) sumHtml += `<div class="sum-card sum-pink"><span class="dot"></span>${cls_count.SECONDARY_SPLITTER} secondary</div>`;
   if (cls_count.CUSTOMER_ISSUE || cls_count.CUSTOMER_POWER) sumHtml += `<div class="sum-card sum-grey"><span class="dot"></span>${(cls_count.CUSTOMER_ISSUE||0)+(cls_count.CUSTOMER_POWER||0)} customer</div>`;
-  if (total_tickets) sumHtml += `<div class="sum-card sum-green"><span class="dot"></span>${total_tickets} CS complaints</div>`;
+  if (total_tickets) sumHtml += `<div class="sum-card sum-green"><span class="dot"></span>${total_tickets} complaints</div>`;
   document.getElementById('summary').innerHTML = sumHtml;
 
-  // Action panel — what should the partner actually DO
   let actHtml = '<h3>Aapko kya karna hai (What you need to do)</h3>';
-  if (cls_count.OLT_BACKBONE) actHtml += `<div class="action-item fix"><span class="ai">🔴</span><div><strong>Major network issue — ${cls_count.OLT_BACKBONE} incident(s)</strong><br>ISP connectivity check karein, partner office mein power aur equipment dekhein. OLT sahi hai toh ISP ko turant call karein. Customer devices restart se kuch nahi hoga.</div></div>`;
-  if (cls_count.PRIMARY_SPLITTER) actHtml += `<div class="action-item check"><span class="ai">🟠</span><div><strong>Primary splitter issue — ${cls_count.PRIMARY_SPLITTER} area(s) affected</strong><br>Primary splitter aur main fiber trunk check karein. Multiple secondary splitters down hain in areas mein.</div></div>`;
-  if (cls_count.SECONDARY_SPLITTER) actHtml += `<div class="action-item check"><span class="ai">🟡</span><div><strong>${cls_count.SECONDARY_SPLITTER} jagah pe technician bhejein</strong><br>Customer ke paas wale splitter pe jaake fiber check karein. Customer devices restart MAT karein.</div></div>`;
-  if (cls_count.CUSTOMER_ISSUE || cls_count.CUSTOMER_POWER) actHtml += `<div class="action-item info"><span class="ai">⚪</span><div>${(cls_count.CUSTOMER_ISSUE||0)+(cls_count.CUSTOMER_POWER||0)} customer ke device mein issue hai — aapko jaane ki zaroorat nahi. ${cls_count.CUSTOMER_POWER||0} mein customer ne khud power off kiya hoga.</div></div>`;
-  if (total_tickets) actHtml += `<div class="action-item complaint"><span class="ai">📞</span><div><strong>${total_tickets} customer ne CS pe call kiya hai</strong> — pehle unke area ke issues solve karein.</div></div>`;
+  if (cls_count.OLT_BACKBONE) actHtml += `<div class="action-item fix"><span class="ai">🔴</span><div><strong>Major network issue — ${cls_count.OLT_BACKBONE} incident(s)</strong><br>ISP connectivity check karein, partner office mein power aur equipment dekhein. OLT sahi hai toh ISP ko turant call karein.</div></div>`;
+  if (cls_count.PRIMARY_SPLITTER) actHtml += `<div class="action-item check"><span class="ai">🟠</span><div><strong>Primary splitter — ${cls_count.PRIMARY_SPLITTER} area(s)</strong><br>Primary splitter aur main fiber trunk check karein.</div></div>`;
+  if (cls_count.SECONDARY_SPLITTER) actHtml += `<div class="action-item check"><span class="ai">🟡</span><div><strong>${cls_count.SECONDARY_SPLITTER} jagah pe technician bhejein</strong><br>Splitter pe jaake fiber check karein. Devices restart MAT karein.</div></div>`;
+  if (cls_count.CUSTOMER_ISSUE || cls_count.CUSTOMER_POWER) actHtml += `<div class="action-item info"><span class="ai">⚪</span><div>${(cls_count.CUSTOMER_ISSUE||0)+(cls_count.CUSTOMER_POWER||0)} customer device issue — dispatch ki zaroorat nahi.</div></div>`;
+  if (total_tickets) actHtml += `<div class="action-item complaint"><span class="ai">📞</span><div><strong>${total_tickets} customer complaints</strong> — priority HIGH.</div></div>`;
   document.getElementById('action-panel').innerHTML = actHtml;
 
-  // Plot incidents on map
+  // Plot on map
   const bounds = [];
   data.incidents.forEach(inc => {
     if (!inc.center_lat || !inc.center_lng) return;
-
     const color = COLORS[inc.classification] || '#A7A1B2';
     const label = LABELS[inc.classification] || inc.classification;
     const tagBg = TAG_BG[inc.classification] || '#F1EDF7';
@@ -671,73 +696,93 @@ async function load() {
     const marker = L.marker([inc.center_lat, inc.center_lng], {
       icon: circleIcon(color, inc.device_count)
     }).addTo(map);
-
     bounds.push([inc.center_lat, inc.center_lng]);
 
-    // Build device list (text only — no scattered dots on map)
     let deviceHtml = '';
-    inc.devices.forEach(d => {
+    (inc.devices||[]).forEach(d => {
       const dTime = d.down_time ? d.down_time.replace('T',' ').substring(11,16) : '';
       const rTime = d.recovery_time ? d.recovery_time.replace('T',' ').substring(11,16) : '';
-      deviceHtml += `<div style="font-size:11px;padding:3px 0;border-bottom:1px solid #eee;">
-        <strong>${d.customer_name||d.device_id}</strong> — ${d.locality||d.address||''}
-        <br><span style="color:#665E75;">Down: ${dTime || '?'}</span>
-        ${d.recovery_time ? `<span style="color:#008043;"> → Up: ${rTime} ✓</span>` : '<span style="color:#E01E00;"> ● Still down</span>'}
+      deviceHtml += `<div style="font-size:10px;padding:2px 0;border-bottom:1px solid #eee;">
+        <strong>${d.customer_name||d.device_id}</strong> — ${(d.locality||d.address||'').substring(0,30)}
+        <br>Down: ${dTime||'?'} ${d.recovery_time ? '→ Up: '+rTime+' ✓' : '<span style="color:#E01E00">● Still down</span>'}
       </div>`;
     });
 
     const ticketHtml = inc.has_ticket
-      ? `<div style="margin-top:6px;padding:4px 8px;background:#E1FAED;border-radius:4px;font-size:11px;color:#008043;font-weight:600;">📞 ${inc.ticket_count} customer complaint(s)</div>`
-      : '';
+      ? `<div style="margin-top:4px;padding:3px 6px;background:#E1FAED;border-radius:4px;font-size:10px;color:#008043;font-weight:600;">📞 ${inc.ticket_count} complaint(s)</div>` : '';
 
     const navLink = `https://www.google.com/maps?q=${inc.center_lat},${inc.center_lng}`;
-
-    // Time info
     const downSince = inc.first_fail_ist || inc.created_ist || '';
-    const downTime = downSince ? new Date(downSince) : null;
-    const now = new Date();
+    const timeDisplay = downSince ? downSince.replace('T',' ').substring(0,16) : '';
     let durationStr = '';
     if (inc.duration_minutes) {
-      const h = Math.floor(inc.duration_minutes / 60);
-      const m = inc.duration_minutes % 60;
-      durationStr = h > 0 ? `${h}h ${m}m` : `${m} min`;
-    } else if (downTime) {
-      const diffMin = Math.round((now - downTime) / 60000);
-      const h = Math.floor(diffMin / 60);
-      const m = diffMin % 60;
-      durationStr = h > 0 ? `${h}h ${m}m` : `${m} min`;
+      const h = Math.floor(inc.duration_minutes/60), m = inc.duration_minutes%60;
+      durationStr = h>0 ? h+'h '+m+'m' : m+' min';
+    } else if (downSince) {
+      const diffMin = Math.round((new Date() - new Date(downSince))/60000);
+      const h = Math.floor(diffMin/60), m = diffMin%60;
+      durationStr = h>0 ? h+'h '+m+'m' : m+' min';
     }
-    const timeDisplay = downSince ? downSince.replace('T',' ').substring(0,16) : '';
-    const statusLabel = inc.status === 'CLOSED' ? '<span style="color:#008043;font-weight:700;">✓ Resolved</span>' : '<span style="color:#E01E00;font-weight:700;">● Active</span>';
+    const statusLabel = inc.status==='CLOSED' ? '<span style="color:#008043;font-weight:700;">✓ Resolved</span>' : '<span style="color:#E01E00;font-weight:700;">● Active</span>';
     const actionLabel = inc.action_label || '';
 
     marker.bindPopup(`
       <div>
         <span class="popup-tag" style="background:${tagBg};color:${color};">${label}</span>
         <div style="font-weight:700;margin:4px 0;">${inc.device_count} customers affected</div>
-        <div style="font-size:11px;color:#665E75;margin-bottom:4px;">
-          📍 ${inc.geo_spread}${inc.concurrent > 1 ? ' · ' + inc.concurrent + ' other issues happening' : ''} · ${inc.device_count} device${inc.device_count !== 1 ? 's' : ''}
+        <div style="font-size:10px;color:#665E75;margin-bottom:3px;">
+          📍 ${inc.geo_spread} · ${inc.device_count} device${inc.device_count!==1?'s':''}
+          ${inc.concurrent>1 ? ' · '+inc.concurrent+' concurrent' : ''}
         </div>
-        <div style="font-size:11px;color:#665E75;margin-bottom:4px;">
-          ⏱ Down since: <strong>${timeDisplay}</strong> (${durationStr}) ${statusLabel}
+        <div style="font-size:10px;color:#665E75;margin-bottom:3px;">
+          ⏱ Down: <strong>${timeDisplay}</strong> (${durationStr}) ${statusLabel}
         </div>
-        ${actionLabel ? `<div style="font-size:11px;padding:6px 8px;background:#F1EDF7;border-radius:4px;margin:6px 0;line-height:1.5;"><strong>Action:</strong> ${actionLabel}</div>` : ''}
+        ${actionLabel ? `<div style="font-size:10px;padding:5px 7px;background:#F1EDF7;border-radius:4px;margin:5px 0;line-height:1.4;"><strong>Action:</strong> ${actionLabel}</div>` : ''}
         ${ticketHtml}
-        <div style="margin-top:8px;max-height:120px;overflow-y:auto;">${deviceHtml}</div>
+        <div style="margin-top:6px;max-height:100px;overflow-y:auto;">${deviceHtml}</div>
         <a class="popup-nav" href="${navLink}" target="_blank">📍 Navigate (Google Maps)</a>
       </div>
-    `, {maxWidth: 300});
+    `, {maxWidth: 280});
   });
 
-  if (bounds.length) map.fitBounds(bounds, {padding: [40, 40], maxZoom: 15});
+  if (bounds.length) map.fitBounds(bounds, {padding: [30, 30], maxZoom: 15});
 }
 
-function showMsg(lang) {
-  document.getElementById('msg-en').style.display = lang==='en' ? 'block' : 'none';
-  document.getElementById('msg-hi').style.display = lang==='hi' ? 'block' : 'none';
-  document.querySelectorAll('.msg-tab').forEach(t =>
+function setWaLang(lang) {
+  currentWaLang = lang;
+  document.getElementById('wa-preview').textContent = lang === 'en' ? msgEn : msgHi;
+  document.querySelectorAll('.wa-lang').forEach(t =>
     t.classList.toggle('active', t.textContent.toLowerCase().includes(lang==='en'?'eng':'hin'))
   );
+}
+
+function sendWhatsApp() {
+  const phone = document.getElementById('wa-phone').value.replace(/\\D/g, '');
+  const status = document.getElementById('wa-status');
+  if (!phone || phone.length < 10) {
+    status.className = 'wa-status err';
+    status.textContent = 'Please enter a valid 10-digit mobile number';
+    return;
+  }
+  const fullPhone = '91' + phone.slice(-10);
+  const msg = currentWaLang === 'en' ? msgEn : msgHi;
+  const waUrl = `https://api.whatsapp.com/send?phone=${fullPhone}&text=${encodeURIComponent(msg)}`;
+  window.open(waUrl, '_blank');
+  status.className = 'wa-status ok';
+  status.textContent = 'WhatsApp opened — confirm send in the WhatsApp window.';
+}
+
+function copyMsg() {
+  const msg = currentWaLang === 'en' ? msgEn : msgHi;
+  const status = document.getElementById('wa-status');
+  navigator.clipboard.writeText(msg).then(() => {
+    status.className = 'wa-status ok';
+    status.textContent = 'Message copied to clipboard!';
+    setTimeout(() => { status.className = 'wa-status'; }, 2000);
+  }).catch(() => {
+    status.className = 'wa-status err';
+    status.textContent = 'Copy failed — select and copy manually from preview above.';
+  });
 }
 
 load();
